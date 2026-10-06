@@ -1,0 +1,97 @@
+/* WohnStart Komplett — Meine Angaben, Dokumente erstellen, Meine Unterlagen,
+   Bewerbungs-Checkliste. Uses the existing site tokens from index.html. */
+
+/* Sub navigation shared by the "Mein WohnStart" pages */
+.ws-tabs { display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+.ws-tabs::-webkit-scrollbar { display: none; }
+.ws-tab {
+  flex-shrink: 0; font-size: .85rem; font-weight: 500; color: var(--ink-soft); padding: .5rem .85rem; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); transition: border-color .15s ease, background .15s ease, color .15s ease; white-space: nowrap;
+}
+.ws-tab:hover { border-color: var(--blue); color: var(--ink); }
+.ws-tab.is-active { background: var(--blue-deep); border-color: var(--blue-deep); color: #fff; }
+
+.ws-pill { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 600; padding: .3rem .7rem; border-radius: 999px; }
+.ws-pill.is-on { background: var(--green-tint); color: var(--green); }
+.ws-pill.is-off { background: var(--amber-tint); color: var(--amber); }
+
+/* Status badges (✓ / ! / ✕) */
+.ws-st { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; line-height: 1; }
+.ws-st.is-ok { background: var(--green-tint); color: var(--green); }
+.ws-st.is-warn { background: var(--amber-tint); color: var(--amber); }
+.ws-st.is-missing { background: var(--kc-red-tint, #FCEDEB); color: var(--kc-red, #B4372A); }
+
+.ws-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 600; padding: .15rem .5rem; border-radius: 999px; background: var(--bg-alt); color: var(--ink-soft); }
+.ws-badge.is-ok { background: var(--green-tint); color: var(--green); }
+.ws-badge.is-warn { background: var(--amber-tint); color: var(--amber); }
+.ws-badge.is-bad { background: var(--kc-red-tint, #FCEDEB); color: var(--kc-red, #B4372A); }
+.ws-badge.is-template { background: var(--blue-tint); color: var(--blue-deep); }
+
+/* Form */
+.ws-fieldset { border: 0; padding: 0; margin: 0; }
+.ws-legend { font-weight: 600; font-size: 1.05rem; color: var(--ink); }
+.ws-label { font-size: .875rem; display: block; color: var(--ink); }
+.ws-label .ws-opt { color: var(--ink-soft); font-weight: 400; }
+.ws-input { margin-top: .375rem; width: 100%; border-radius: .5rem; padding: .625rem .75rem; }
+textarea.ws-input { resize: vertical; min-height: 84px; line-height: 1.5; }
+.ws-check { display: flex; align-items: center; gap: .6rem; font-size: .875rem; padding: .65rem .8rem; border: 1px solid var(--line); border-radius: .6rem; cursor: pointer; background: var(--surface); }
+.ws-saved { font-size: .8rem; color: var(--green); min-height: 1.2em; }
+.ws-meter { height: 6px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; }
+.ws-meter > span { display: block; height: 100%; background: var(--green); border-radius: 999px; transition: width .35s ease; }
+
+/* Document choice cards */
+.ws-doc-card { text-align: left; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.ws-doc-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+.ws-doc-card.is-selected { border-color: var(--blue-deep); border-width: 2px; box-shadow: 0 16px 32px -22px rgba(30,63,115,.5); }
+
+/* Paper preview */
+.ws-paper-wrap { position: relative; overflow: hidden; border-radius: 1rem; background: var(--bg-alt); padding: 1rem; }
+.ws-paper {
+  background: #fff; color: #0E1A2B; border-radius: .4rem; box-shadow: 0 10px 30px -18px rgba(14,26,43,.45);
+  padding: 2rem 1.6rem; font-size: .82rem; line-height: 1.5; max-width: 680px; margin: 0 auto;
+}
+@media (min-width: 640px) { .ws-paper { padding: 2.6rem 2.6rem; } }
+.ws-paper h4 { font-weight: 700; font-size: 1.35rem; color: #0E1A2B; }
+.ws-paper .p-brand { font-size: .62rem; font-weight: 700; letter-spacing: .08em; color: #1E3F73; }
+.ws-paper .p-sec { display: flex; gap: .6rem; font-weight: 700; color: #0E1A2B; border-bottom: 1.5px solid #1E3F73; padding-bottom: .25rem; margin-top: 1.1rem; }
+.ws-paper .p-sec span { color: #1E3F73; }
+.ws-paper .p-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .2rem 1rem; margin-top: .5rem; }
+.ws-paper .p-f { border-bottom: 1px solid #D1D9E3; padding: .2rem 0 .3rem; min-height: 2.4rem; }
+.ws-paper .p-f small { display: block; font-size: .62rem; color: #4A5568; }
+.ws-paper .p-f.is-empty b { color: #A0AEC0; font-weight: 400; }
+.ws-paper .p-f b { font-weight: 400; white-space: pre-wrap; word-break: break-word; }
+.ws-paper .p-soft { color: #4A5568; }
+.ws-paper .p-hl { background: #FFF6D6; border-radius: 2px; }
+.ws-lock {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 58%; display: flex; align-items: flex-end; justify-content: center; padding: 1.25rem;
+  background: linear-gradient(to bottom, rgba(241,244,248,0) 0%, var(--bg-alt) 55%);
+}
+
+/* Unterlagen */
+.ws-folder > summary { list-style: none; cursor: pointer; }
+.ws-folder > summary::-webkit-details-marker { display: none; }
+.ws-folder[open] .ws-folder-arrow { transform: rotate(90deg); }
+.ws-folder-arrow { transition: transform .2s ease; }
+.ws-file { display: flex; gap: .85rem; align-items: flex-start; padding: .85rem 0; border-top: 1px solid var(--line); }
+.ws-file-icon {
+  flex-shrink: 0; width: 38px; height: 46px; border-radius: .45rem; display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: .35rem; font-size: .6rem; font-weight: 700; background: var(--blue-tint); color: var(--blue-deep);
+}
+.ws-file-icon.is-pdf { background: var(--kc-red-tint, #FCEDEB); color: var(--kc-red, #B4372A); }
+.ws-link { font-size: .82rem; font-weight: 600; color: var(--blue-deep); }
+.ws-link:hover { text-decoration: underline; }
+.ws-link.is-danger { color: var(--kc-red, #B4372A); }
+
+/* Checklist rows */
+.ws-cl-row { display: flex; gap: .8rem; align-items: flex-start; border: 1px solid var(--line); border-radius: .75rem; padding: .85rem .9rem; background: var(--surface); }
+
+.ws-toast {
+  position: fixed; left: 50%; bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; z-index: 130;
+  background: var(--ink); color: var(--bg); font-size: .875rem; padding: .7rem 1.1rem; border-radius: .75rem; transition: opacity .2s ease, transform .2s ease;
+  max-width: calc(100vw - 2rem); box-shadow: 0 14px 30px -14px rgba(14,26,43,.5);
+}
+.ws-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) { .ws-doc-card, .ws-folder-arrow, .ws-meter > span, .ws-toast { transition: none; } }
+/* Elements that set their own display must still respect Tailwind's .hidden */
+.ws-lock.hidden, .ws-cl-row.hidden, .ws-file.hidden { display: none; }

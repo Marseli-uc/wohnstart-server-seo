@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Zahlung erfolgreich – WohnStart</title>
+<meta name="robots" content="noindex, nofollow" />
+<meta name="description" content="Bestätigung deiner WohnStart-Bestellung." />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #FBFCFD; --surface: #FFFFFF; --ink: #0E1A2B; --ink-soft: #4A5568;
+    --line: #E3E8EF; --blue-deep: #1E3F73; --blue-tint: #EAF1FB;
+    --green: #1F7A5C; --green-tint: #E7F5EF; --amber: #B4790A; --amber-tint: #FBF1E0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; padding: env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0); }
+  .font-display { font-family: 'Fraunces', serif; }
+  .surface { background: var(--surface); border: 1px solid var(--line); }
+  .btn-primary { background: var(--blue-deep); color: #fff; }
+  .btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .spinner { border: 2px solid var(--line); border-top-color: var(--blue-deep); border-radius: 50%; width: 22px; height: 22px; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-5 py-12">
+  <div class="w-full max-w-lg surface rounded-2xl p-8" id="content">
+    <div class="flex items-center gap-3">
+      <div class="spinner"></div>
+      <p style="color:var(--ink-soft)">Zahlung wird überprüft…</p>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  var params = new URLSearchParams(window.location.search);
+  var sessionId = params.get("session_id");
+  var content = document.getElementById("content");
+
+  function eurFromCents(cents, currency) {
+    var value = (cents || 0) / 100;
+    return value.toLocaleString("de-DE", { style: "currency", currency: currency || "EUR" });
+  }
+
+  function renderError() {
+    content.innerHTML =
+      '<h1 class="font-display text-2xl font-semibold" style="color:var(--ink)">Etwas ist schiefgelaufen</h1>' +
+      '<p class="text-sm mt-3" style="color:var(--ink-soft)">Wir konnten deine Zahlung nicht überprüfen. Falls du bezahlt hast, ist dein Geld sicher — bitte kontaktiere uns mit deiner Bestellnummer.</p>' +
+      '<a href="/" class="btn-secondary inline-block mt-6 px-5 py-3 rounded-lg font-semibold text-center w-full">Zur Startseite</a>';
+  }
+
+  function renderPending(attempt) {
+    content.innerHTML =
+      '<div class="flex items-center gap-3">' +
+        '<div class="spinner"></div>' +
+        '<p style="color:var(--ink-soft)">Zahlung wird noch verarbeitet…</p>' +
+      '</div>' +
+      '<p class="text-xs mt-4" style="color:var(--ink-soft)">Das kann einen Moment dauern. Diese Seite aktualisiert sich automatisch.</p>';
+
+    if (attempt < 8) {
+      setTimeout(function () { checkStatus(attempt + 1); }, 2000);
+    } else {
+      content.innerHTML =
+        '<h1 class="font-display text-2xl font-semibold" style="color:var(--ink)">Zahlung wird noch bestätigt</h1>' +
+        '<p class="text-sm mt-3" style="color:var(--ink-soft)">Deine Zahlung braucht etwas länger zur Bestätigung. Du musst nichts weiter tun — dein Zugang wird automatisch freigeschaltet, sobald die Bestätigung eingegangen ist. Du kannst diese Seite später erneut aufrufen.</p>' +
+        '<a href="/" class="btn-secondary inline-block mt-6 px-5 py-3 rounded-lg font-semibold text-center w-full">Zur Startseite</a>';
+    }
+  }
+
+  function renderSuccess(order) {
+    var featuresHtml = (order.features || []).map(function (f) {
+      return '<li class="flex gap-2 text-sm"><span style="color:var(--green)">✓</span><span style="color:var(--ink)">' + f + '</span></li>';
+    }).join("");
+
+    content.innerHTML =
+      '<div class="w-12 h-12 rounded-full flex items-center justify-center" style="background:var(--green-tint)">' +
+        '<svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 11.5l4.5 4.5L18 6" stroke="#1F7A5C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</div>' +
+      '<h1 class="font-display text-2xl font-semibold mt-4" style="color:var(--ink)">Zahlung erfolgreich</h1>' +
+      '<p class="text-sm mt-2" style="color:var(--ink-soft)">Vielen Dank für deinen Kauf. WohnStart Komplett ist jetzt in diesem Browser freigeschaltet.</p>' +
+      '<p class="text-xs mt-2" style="color:var(--ink-soft)">Tipp: Speichere dir den Link „Zu meinen Dokumenten“ – damit schaltest du deinen Zugang auch auf anderen Geräten frei.</p>' +
+
+      '<div class="rounded-xl p-4 mt-5" style="background:var(--bg-alt, #F1F4F8)">' +
+        '<div class="flex justify-between text-sm"><span style="color:var(--ink-soft)">Paket</span><span style="color:var(--ink); font-weight:600">' + order.packageName + '</span></div>' +
+        '<div class="flex justify-between text-sm mt-2"><span style="color:var(--ink-soft)">Betrag</span><span style="color:var(--ink); font-weight:600">' + eurFromCents(order.amount, order.currency) + '</span></div>' +
+        '<div class="flex justify-between text-sm mt-2"><span style="color:var(--ink-soft)">E-Mail</span><span style="color:var(--ink); font-weight:600">' + (order.email || "–") + '</span></div>' +
+      '</div>' +
+
+      (featuresHtml ? '<h2 class="font-semibold mt-6 text-sm" style="color:var(--ink)">Das kannst du jetzt nutzen</h2><ul class="flex flex-col gap-2 mt-3">' + featuresHtml + '</ul>' : "") +
+
+      '<div class="flex flex-col gap-2 mt-7">' +
+        '<a href="/#mein-wohnstart" class="btn-primary px-5 py-3 rounded-lg font-semibold text-center">Mein WohnStart öffnen</a>' +
+        '<a href="/account.html?session_id=' + encodeURIComponent(sessionId) + '" class="btn-secondary px-5 py-3 rounded-lg font-semibold text-center">Zu meinen Dokumenten</a>' +
+        '<a href="/#ki-check" class="btn-secondary px-5 py-3 rounded-lg font-semibold text-center">KI-Dokumenten-Check starten</a>' +
+        '<a href="/" class="btn-secondary px-5 py-3 rounded-lg font-semibold text-center">Zur Startseite</a>' +
+      '</div>';
+  }
+
+  function checkStatus(attempt) {
+    fetch("/api/order-status?session_id=" + encodeURIComponent(sessionId))
+      .then(function (res) { return res.json(); })
+      .then(function (order) {
+        if (order.status === "paid") {
+          renderSuccess(order);
+        } else {
+          renderPending(attempt || 0);
+        }
+      })
+      .catch(renderError);
+  }
+
+  if (!sessionId) {
+    renderError();
+  } else {
+    checkStatus(0);
+  }
+})();
+</script>
+</body>
+</html>

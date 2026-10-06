@@ -1,0 +1,99 @@
+/* "Neu in Deutschland – noch keine SCHUFA?" (#neu-in-deutschland)
+   Uses the existing WohnStart tokens from index.html. */
+
+.ndz-hero {
+  background:
+    radial-gradient(1200px 420px at 85% -10%, var(--blue-tint), transparent 70%),
+    linear-gradient(to bottom, var(--bg), var(--bg));
+  border-bottom: 1px solid var(--line);
+}
+.ndz-eyebrow { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+
+.ndz-quote { box-shadow: 0 24px 48px -30px rgba(14,26,43,.35); position: relative; }
+.ndz-dot { flex-shrink: 0; width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 4px var(--amber-tint); }
+
+/* comparison cards */
+.ndz-card { border-top-width: 4px; }
+.ndz-card--neutral { border-top-color: var(--blue-deep); }
+.ndz-card--warn { border-top-color: var(--amber); }
+.ndz-icon { width: 46px; height: 46px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ndz-icon--blue { background: var(--blue-tint); color: var(--blue-deep); }
+.ndz-icon--amber { background: var(--amber-tint); color: var(--amber); }
+.ndz-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .7rem; }
+.ndz-list li { position: relative; padding-left: 1.6rem; color: var(--ink); font-size: .95rem; line-height: 1.55; }
+.ndz-list li::before {
+  content: ""; position: absolute; left: 0; top: .38em; width: .95rem; height: .95rem; border-radius: 50%;
+  background: var(--blue-tint); box-shadow: inset 0 0 0 4px var(--blue-tint), inset 0 0 0 9px var(--blue-deep);
+}
+.ndz-list--amber li::before { background: var(--amber-tint); box-shadow: inset 0 0 0 4px var(--amber-tint), inset 0 0 0 9px var(--amber); }
+.ndz-pill { display: inline-block; font-size: .82rem; font-weight: 600; padding: .45rem .8rem; border-radius: 999px; }
+.ndz-pill--blue { background: var(--blue-tint); color: var(--blue-deep); }
+.ndz-pill--amber { background: var(--amber-tint); color: var(--amber); }
+
+/* timeline */
+.ndz-timeline { list-style: none; padding: 0; margin: 0; position: relative; display: flex; flex-direction: column; gap: 1.1rem; }
+.ndz-timeline::before { content: ""; position: absolute; left: 19px; top: 12px; bottom: 12px; width: 2px; background: var(--line); }
+.ndz-step { position: relative; padding-left: 58px; }
+.ndz-step-num {
+  position: absolute; left: 0; top: 14px; width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.1rem;
+  background: var(--blue-deep); color: #fff; box-shadow: 0 0 0 5px var(--bg-alt);
+}
+.ndz-note { font-size: .85rem; line-height: 1.5; padding: .65rem .8rem; border-radius: .6rem; background: var(--amber-tint); color: var(--ink); }
+.ndz-chips { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
+.ndz-chips li { font-size: .8rem; padding: .35rem .7rem; border-radius: 999px; background: var(--blue-tint); color: var(--blue-deep); font-weight: 500; }
+
+/* statement (fixed navy so it stays strong in dark mode too) */
+.ndz-statement {
+  background: linear-gradient(135deg, #1E3F73 0%, #16325D 60%, #12294C 100%);
+  box-shadow: 0 30px 60px -36px rgba(14,26,43,.6);
+  position: relative; overflow: hidden;
+}
+.ndz-statement::after {
+  content: ""; position: absolute; right: -80px; top: -80px; width: 280px; height: 280px; border-radius: 50%;
+  border: 40px solid rgba(255,255,255,.05);
+}
+
+/* documents */
+.ndz-doc { position: relative; padding-left: 3.1rem !important; transition: transform .18s ease, box-shadow .18s ease; }
+.ndz-doc:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -20px rgba(14,26,43,.3); }
+.ndz-check {
+  position: absolute; left: 1.1rem; top: 1.2rem; width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700;
+  background: var(--green-tint); color: var(--green);
+}
+.ndz-doc--hint { padding-left: 1.25rem !important; background: var(--blue-tint); border: 1px dashed var(--blue); }
+.ndz-doc--hint:hover { transform: none; box-shadow: none; }
+
+/* FAQ accordion */
+.ndz-faq { display: flex; flex-direction: column; gap: .7rem; }
+.ndz-faq-item summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 1.05rem 1.2rem; font-weight: 600; color: var(--ink);
+}
+.ndz-faq-item summary::-webkit-details-marker { display: none; }
+.ndz-faq-icon { position: relative; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--blue-tint); transition: transform .25s ease; }
+.ndz-faq-icon::before, .ndz-faq-icon::after { content: ""; position: absolute; left: 50%; top: 50%; width: 11px; height: 1.8px; background: var(--blue-deep); transform: translate(-50%, -50%); border-radius: 2px; }
+.ndz-faq-icon::after { transform: translate(-50%, -50%) rotate(90deg); transition: transform .25s ease; }
+.ndz-faq-item[open] .ndz-faq-icon::after { transform: translate(-50%, -50%) rotate(0deg); }
+.ndz-faq-item[open] { border-color: var(--blue); }
+.ndz-faq-body { padding: 0 1.2rem 1.15rem; color: var(--ink-soft); font-size: .95rem; line-height: 1.6; }
+.ndz-faq-body p + p { margin-top: .6rem; }
+.ndz-faq-strong { color: var(--ink); font-weight: 700; }
+.ndz-faq-item[open] .ndz-faq-body { animation: ndz-fade .28s ease; }
+@keyframes ndz-fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* subtle reveal on scroll (only when JS marks the page as ready) */
+.ndz-anim .ndz-reveal { opacity: 0; transform: translateY(14px); transition: opacity .55s ease, transform .55s ease; }
+.ndz-anim .ndz-reveal.is-in { opacity: 1; transform: none; }
+
+@media (max-width: 640px) {
+  .ndz-step { padding-left: 50px; }
+  .ndz-step-num { width: 34px; height: 34px; font-size: 1rem; top: 16px; }
+  .ndz-timeline::before { left: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ndz-anim .ndz-reveal { opacity: 1; transform: none; transition: none; }
+  .ndz-faq-icon, .ndz-faq-icon::after, .ndz-doc { transition: none; }
+  .ndz-faq-item[open] .ndz-faq-body { animation: none; }
+}
