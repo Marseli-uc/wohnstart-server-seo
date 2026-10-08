@@ -1,0 +1,65 @@
+/* KI-Dokumenten-Check — uses the existing WohnStart tokens from index.html.
+   Adds one colour the site didn't have: a "problem" red matching its form-error red. */
+:root { --kc-red: #B4372A; --kc-red-tint: #FCEDEB; }
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) { --kc-red: #F08A7E; --kc-red-tint: #3A1A17; }
+}
+:root[data-theme="dark"] { --kc-red: #F08A7E; --kc-red-tint: #3A1A17; }
+
+/* Step indicator */
+.kc-steps { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; list-style: none; padding: 0; font-size: .875rem; color: var(--ink-soft); }
+.kc-steps li { display: flex; align-items: center; gap: .5rem; }
+.kc-steps li span {
+  width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 600; border: 1.5px solid var(--line); background: var(--surface);
+}
+.kc-steps li.is-current { color: var(--ink); font-weight: 600; }
+.kc-steps li.is-current span { border-color: var(--blue-deep); background: var(--blue-deep); color: #fff; }
+.kc-steps li.is-done span { border-color: var(--green); background: var(--green-tint); color: var(--green); }
+
+/* Dropzone */
+.kc-drop {
+  border: 2px dashed var(--line); border-radius: 1.25rem; background: var(--surface); cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.kc-drop:hover, .kc-drop.is-over { border-color: var(--blue); background: var(--blue-tint); }
+.kc-drop:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
+.kc-drop.has-file { padding-top: 2.25rem; padding-bottom: 2.25rem; }
+.kc-error { color: var(--kc-red); font-size: .875rem; }
+
+.kc-fileicon {
+  flex-shrink: 0; width: 44px; height: 52px; border-radius: .5rem; display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: .45rem; font-size: .68rem; font-weight: 700; color: var(--kc-red); background: var(--kc-red-tint);
+}
+
+/* Loading */
+.kc-spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--blue-deep); animation: kc-spin .85s linear infinite; }
+@keyframes kc-spin { to { transform: rotate(360deg); } }
+.kc-bar { height: 6px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; }
+.kc-bar span { display: block; height: 100%; width: 0; background: var(--blue-deep); border-radius: 999px; transition: width .5s ease; }
+
+/* Result */
+.kc-head { border-bottom: 1px solid var(--line); }
+.kc-head.is-ready { background: var(--green-tint); }
+.kc-head.is-attention { background: var(--amber-tint); }
+.kc-head.is-problem { background: var(--kc-red-tint); }
+.kc-status {
+  display: inline-flex; align-items: center; gap: .45rem; font-weight: 600; font-size: .9rem;
+  padding: .45rem .8rem .45rem .55rem; border-radius: 999px; background: var(--surface);
+}
+.kc-status.is-ready { color: var(--green); }
+.kc-status.is-attention { color: var(--amber); }
+.kc-status.is-problem { color: var(--kc-red); }
+.kc-h { font-weight: 600; font-size: 1.05rem; color: var(--ink); }
+.kc-problem { border: 1px solid var(--line); border-radius: .9rem; padding: 1rem 1.1rem; }
+.kc-todo { border-top: 1px solid var(--line); padding-top: .75rem; padding-left: 1.75rem; }
+.kc-check { display: flex; gap: .7rem; }
+.kc-check > span:first-child { flex-shrink: 0; margin-top: 1px; }
+.kc-c-ok { color: var(--green); }
+.kc-c-warn { color: var(--amber); }
+.kc-c-bad { color: var(--kc-red); }
+.kc-c-info { color: var(--blue); }
+.kc-c-unclear { color: var(--ink-soft); }
+.kc-details summary { cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) { .kc-spinner { animation: none; } .kc-bar span { transition: none; } }

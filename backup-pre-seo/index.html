@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>WohnStart – Dein smarter Start in die Wohnungssuche</title>
+<meta name="description" content="WohnStart hilft dir, deine Mietkosten zu berechnen, Unterlagen vorzubereiten und deine Wohnungssuche in Deutschland zu organisieren." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #FBFCFD;
+    --bg-alt: #F1F4F8;
+    --surface: #FFFFFF;
+    --ink: #0E1A2B;
+    --ink-soft: #4A5568;
+    --line: #E3E8EF;
+    --blue: #2C5CA6;
+    --blue-deep: #1E3F73;
+    --blue-tint: #EAF1FB;
+    --green: #1F7A5C;
+    --green-tint: #E7F5EF;
+    --amber: #B4790A;
+    --amber-tint: #FBF1E0;
+    --focus: #2C5CA6;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #0E1A2B;
+      --bg-alt: #101F33;
+      --surface: #14243A;
+      --ink: #F2F5F9;
+      --ink-soft: #AEBACB;
+      --line: #223349;
+      --blue: #6FA0DE;
+      --blue-deep: #9DC0EC;
+      --blue-tint: #16283F;
+      --green-tint: #103726;
+      --amber-tint: #34260C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1A2B;
+    --bg-alt: #101F33;
+    --surface: #14243A;
+    --ink: #F2F5F9;
+    --ink-soft: #AEBACB;
+    --line: #223349;
+    --blue: #6FA0DE;
+    --blue-deep: #9DC0EC;
+    --blue-tint: #16283F;
+    --green-tint: #103726;
+    --amber-tint: #34260C;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(76px + env(safe-area-inset-top, 0px)); }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .font-display { font-family: 'Fraunces', serif; }
+  h1, h2, h3, .font-display { letter-spacing: -0.01em; }
+  .surface { background: var(--surface); border: 1px solid var(--line); }
+  .btn-primary {
+    background: var(--blue-deep);
+    color: #fff;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn-primary:hover { background: var(--blue); box-shadow: 0 8px 20px -8px rgba(30,63,115,.5); transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .btn-secondary:hover { border-color: var(--blue); background: var(--blue-tint); }
+  a, button { outline-offset: 3px; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px;
+  }
+  input, select, textarea {
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  }
+  input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .7; }
+  .route-page { display: none; }
+  .route-page.active { display: block; }
+  .nav-link { position: relative; color: var(--ink-soft); }
+  .nav-link.active { color: var(--ink); font-weight: 600; }
+  .nav-link.active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -19px; height: 2px; background: var(--blue-deep);
+  }
+  .card-lift { transition: transform .18s ease, box-shadow .18s ease; }
+  .card-lift:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -20px rgba(14,26,43,.25); }
+  .progress-track { background: var(--bg-alt); }
+  .progress-fill { background: var(--green); transition: width .35s ease; }
+  ::selection { background: var(--blue-tint); }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  }
+  .hero-illustration { filter: drop-shadow(0 20px 40px rgba(30,63,115,.18)); }
+  /* "Mehr" dropdown + application-flow form additions (frontend-only, no payment logic) */
+  .field-invalid { border-color: #C0392B !important; box-shadow: 0 0 0 1px #C0392B; }
+  .field-error { display: block; color: #C0392B; font-size: .78rem; margin-top: .4rem; }
+
+  /* "Mehr" dropdown */
+  .more-menu-arrow { transition: transform .22s ease; }
+  .more-menu-arrow.open { transform: rotate(180deg); }
+  .more-dropdown {
+    opacity: 0;
+    transform: translateY(-8px) scale(.97);
+    pointer-events: none;
+    transition: opacity .22s cubic-bezier(.16,1,.3,1), transform .22s cubic-bezier(.16,1,.3,1);
+    transform-origin: top left;
+  }
+  .more-dropdown.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .more-dropdown-item {
+    display: flex; align-items: flex-start; gap: .7rem;
+    padding: .6rem .65rem; border-radius: .75rem;
+    transition: background .15s ease;
+  }
+  .more-dropdown-item:hover, .more-dropdown-item:focus-visible { background: var(--bg-alt); }
+  .more-dropdown-icon {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: .6rem;
+    background: var(--blue-tint); color: var(--blue-deep);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .15s ease;
+  }
+  .more-dropdown-item:hover .more-dropdown-icon { transform: translateX(2px); }
+  .more-dropdown-title { display: block; font-size: .875rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .more-dropdown-desc { display: block; font-size: .76rem; color: var(--ink-soft); margin-top: 1px; line-height: 1.3; }
+  .more-dropdown-divider { height: 1px; background: var(--line); margin: .3rem .65rem; }
+  @media (prefers-reduced-motion: reduce) {
+    .more-dropdown, .more-menu-arrow { transition: none; }
+  }
+  .tag {
+    font-size: .78rem; padding: .25rem .6rem; border-radius: 999px; display: inline-flex; align-items: center; gap: .35rem;
+  }
+</style>
+<link rel="stylesheet" href="/css/ki-check.css">
+<link rel="stylesheet" href="/css/komplett.css">
+<link rel="stylesheet" href="/css/neu-in-deutschland.css">
+</head>
+<body class="antialiased">
+
+<!-- ============ NAV ============ -->
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur" style="background: color-mix(in srgb, var(--bg) 88%, transparent); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0px);">
+  <div class="max-w-6xl mx-auto px-5 h-[76px] flex items-center justify-between">
+    <a href="#home" class="flex items-center gap-2 shrink-0" onclick="closeMobileNav()">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M4 14L14 5l10 9" stroke="#1E3F73" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 12v9.5a1 1 0 0 0 1 1h4.2v-6.2h3.6V22.5h4.2a1 1 0 0 0 1-1V12" stroke="#1E3F73" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="font-display text-xl font-semibold" style="color:var(--ink)">WohnStart</span>
+    </a>
+
+    <nav class="hidden lg:flex items-center gap-8 text-[15px]" id="desktop-nav">
+      <a href="#home" data-route="home" class="nav-link">Startseite</a>
+      <a href="#mein-wohnstart" data-route="mein-wohnstart" class="nav-link">Mein WohnStart</a>
+      <a href="#neu-in-deutschland" data-route="neu-in-deutschland" class="nav-link whitespace-nowrap">Neu in Deutschland – keine SCHUFA?</a>
+      <div class="relative" id="more-menu">
+        <button type="button" id="more-menu-btn" class="nav-link flex items-center gap-1" aria-haspopup="true" aria-expanded="false" onclick="toggleMoreMenu()">
+          Mehr
+          <svg id="more-menu-arrow" class="more-menu-arrow" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div id="more-menu-dropdown" class="more-dropdown absolute left-0 top-full mt-3 w-[340px] max-w-[90vw] rounded-2xl p-2 surface z-[60]" style="box-shadow:0 20px 44px -18px rgba(14,26,43,.3)" role="menu">
+          <a href="#ki-check" data-route="ki-check" onclick="closeMoreMenu()" class="more-dropdown-item" role="menuitem">
+            <span class="more-dropdown-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M5 2.5h5l3 3v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.3 10.2l1.5 1.5 2.9-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.5 1.2l.45 1 1 .45-1 .45-.45 1-.45-1-1-.45 1-.45.45-1z" fill="currentColor"/></svg></span>
+            <span><span class="more-dropdown-title">KI</span><span class="more-dropdown-desc">KI-Dokumenten-Check: PDF prüfen lassen</span></span>
+          </a>
+          <a href="#angaben" data-route="angaben" onclick="closeMoreMenu()" class="more-dropdown-item" role="menuitem">
+            <span class="more-dropdown-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><circle cx="8.5" cy="6" r="2.8" stroke="currentColor" stroke-width="1.4"/><path d="M3 14.2c.8-2.6 2.9-4 5.5-4s4.7 1.4 5.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+            <span><span class="more-dropdown-title">Meine Angaben</span><span class="more-dropdown-desc">Einmal eingeben, überall nutzen</span></span>
+          </a>
+          <div class="more-dropdown-divider"></div>
+          <a href="#rechner" data-route="rechner" onclick="closeMoreMenu()" class="more-dropdown-item" role="menuitem">
+            <span class="more-dropdown-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><rect x="2.5" y="2.5" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 6.5h6M5.5 9h2.5M5.5 11.5h2.5M10 9h1.5M10 11.5h1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+            <span><span class="more-dropdown-title">Mietrechner</span><span class="more-dropdown-desc">Berechne deine maximale Miete</span></span>
+          </a>
+          <a href="#mietpreise" data-route="mietpreise" onclick="closeMoreMenu()" class="more-dropdown-item" role="menuitem">
+            <span class="more-dropdown-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 14h11M5 14V8.5M8.5 14V5M12 14v-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+            <span><span class="more-dropdown-title">Mietpreise</span><span class="more-dropdown-desc">Vergleiche Preise in deiner Stadt</span></span>
+          </a>
+          <div class="more-dropdown-divider"></div>
+          <a href="#neu-in-deutschland" data-route="neu-in-deutschland" onclick="closeMoreMenu()" class="more-dropdown-item" role="menuitem">
+            <span class="more-dropdown-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 15s-4.8-4.3-4.8-8a4.8 4.8 0 0 1 9.6 0c0 3.7-4.8 8-4.8 8z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8.5" cy="7" r="1.7" stroke="currentColor" stroke-width="1.4"/></svg></span>
+            <span><span class="more-dropdown-title">Neu in Deutschland – noch keine SCHUFA?</span><span class="more-dropdown-desc">Deine erste Wohnung ohne SCHUFA-Historie</span></span>
+          </a>
+          <a href="#unterlagen" data-route="unterlagen" onclick="closeMoreMenu()" class="more-dropdown-item" role="menuitem">
+            <span class="more-dropdown-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M2.5 4.5a1 1 0 0 1 1-1h3.4l1.4 1.5h5.2a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-8z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span>
+            <span><span class="more-dropdown-title">Meine Unterlagen</span><span class="more-dropdown-desc">Dokumente ordnen und ablegen</span></span>
+          </a>
+          <div class="more-dropdown-divider"></div>
+          <a href="#kurs" data-route="kurs" onclick="closeMoreMenu()" class="more-dropdown-item" role="menuitem">
+            <span class="more-dropdown-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 2.5l5.5 2.8v5.4l-5.5 2.8-5.5-2.8V5.3L8.5 2.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 5.3l5.5 2.8 5.5-2.8M8.5 8.1v5.4" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span>
+            <span><span class="more-dropdown-title">WohnStart Komplett</span><span class="more-dropdown-desc">Ein Paket – alle Funktionen</span></span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <button type="button" onclick="goToAngaben()" class="hidden sm:inline-flex btn-primary px-5 py-2.5 rounded-lg text-sm font-semibold">Jetzt starten</button>
+      <button id="hamburger" aria-label="Menü öffnen" aria-expanded="false" class="lg:hidden p-2 rounded-md" style="border:1px solid var(--line)" onclick="toggleMobileNav()">
+        <svg id="hamburger-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="#0E1A2B" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- mobile menu -->
+  <div id="mobile-nav" class="lg:hidden hidden" style="border-top:1px solid var(--line); background: var(--bg);">
+    <div class="px-5 py-4 flex flex-col gap-1 text-[15px]">
+      <a href="#home" data-route="home" onclick="closeMobileNav()" class="nav-link py-2.5">Startseite</a>
+      <a href="#ki-check" data-route="ki-check" onclick="closeMobileNav()" class="nav-link py-2.5">KI</a>
+      <a href="#angaben" data-route="angaben" onclick="closeMobileNav()" class="nav-link py-2.5">Meine Angaben</a>
+      <a href="#mein-wohnstart" data-route="mein-wohnstart" onclick="closeMobileNav()" class="nav-link py-2.5">Mein WohnStart</a>
+      <a href="#neu-in-deutschland" data-route="neu-in-deutschland" onclick="closeMobileNav()" class="nav-link py-2.5">Neu in Deutschland – noch keine SCHUFA?</a>
+      <a href="#rechner" data-route="rechner" onclick="closeMobileNav()" class="nav-link py-2.5">Rechner</a>
+      <a href="#mietpreise" data-route="mietpreise" onclick="closeMobileNav()" class="nav-link py-2.5">Mietpreise</a>
+      <a href="#kurs" data-route="kurs" onclick="closeMobileNav()" class="nav-link py-2.5">WohnStart Komplett</a>
+      <button type="button" onclick="goToAngaben()" class="btn-primary text-center px-5 py-3 rounded-lg text-sm font-semibold mt-2">Jetzt starten</button>
+    </div>
+  </div>
+</header>
+
+<main style="padding-top:76px">
+
+<!-- ============ HOME ============ -->
+<section class="route-page" id="page-home" data-page="home">
+
+  <!-- HERO -->
+  <div class="max-w-6xl mx-auto px-5 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-[1.05fr_0.95fr] gap-14 items-center">
+    <div>
+      <span class="tag surface" style="color:var(--blue-deep)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5l3.2 3.2L12 4" stroke="#1E3F73" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Für die Wohnungssuche in Deutschland
+      </span>
+      <h1 class="font-display mt-5 text-[2.6rem] leading-[1.08] sm:text-6xl sm:leading-[1.05] font-semibold" style="color:var(--ink)">
+        Finde deine Wohnung in Deutschland.
+      </h1>
+      <p class="mt-6 text-lg leading-relaxed max-w-xl" style="color:var(--ink-soft)">
+        Verstehe deine Kosten, bereite deine Unterlagen vor und starte deine Wohnungssuche mit einem klaren Plan.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="#ki-check" class="btn-primary px-6 py-3.5 rounded-lg font-semibold">Dokumente kostenlos prüfen</a>
+        <a href="#kurs" class="btn-secondary px-6 py-3.5 rounded-lg font-semibold">WohnStart Pakete</a>
+      </div>
+      <ul class="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm" style="color:var(--ink)">
+        <li class="flex items-center gap-2"><span class="checkmark">✓</span> Mietkosten berechnen</li>
+        <li class="flex items-center gap-2"><span class="checkmark">✓</span> Dokumente vorbereiten</li>
+        <li class="flex items-center gap-2"><span class="checkmark">✓</span> Erfolgreicher bewerben</li>
+      </ul>
+    </div>
+
+    <div class="hidden lg:block">
+      <svg class="hero-illustration w-full h-auto" viewBox="0 0 460 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="120" width="380" height="230" rx="14" fill="var(--surface)" stroke="var(--line)"/>
+        <rect x="40" y="120" width="380" height="46" rx="14" fill="var(--blue-tint)"/>
+        <rect x="62" y="138" width="90" height="10" rx="5" fill="#1E3F73" opacity=".6"/>
+        <circle cx="395" cy="143" r="9" fill="#1F7A5C" opacity=".8"/>
+        <rect x="62" y="192" width="150" height="12" rx="6" fill="var(--line)"/>
+        <rect x="62" y="216" width="230" height="10" rx="5" fill="var(--bg-alt)"/>
+        <rect x="62" y="236" width="190" height="10" rx="5" fill="var(--bg-alt)"/>
+        <rect x="62" y="270" width="336" height="1" fill="var(--line)"/>
+        <rect x="62" y="292" width="150" height="34" rx="8" fill="var(--blue-tint)"/>
+        <text x="80" y="314" font-family="Inter" font-size="15" font-weight="600" fill="#1E3F73">€ 1.240 / Monat</text>
+        <rect x="228" y="292" width="130" height="34" rx="8" fill="var(--green-tint)"/>
+        <text x="246" y="314" font-family="Inter" font-size="15" font-weight="600" fill="#1F7A5C">4 / 7 bereit</text>
+
+        <g transform="translate(255,10)">
+          <path d="M0 90L90 20l90 70" stroke="#1E3F73" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="20" y="80" width="140" height="120" rx="8" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+          <rect x="42" y="100" width="30" height="30" rx="4" fill="var(--blue-tint)"/>
+          <rect x="108" y="100" width="30" height="30" rx="4" fill="var(--blue-tint)"/>
+          <rect x="75" y="150" width="30" height="50" fill="#1E3F73" opacity=".85"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- WOHNUNGSSUCHE (homepage summary) -->
+  <div class="max-w-6xl mx-auto px-5 py-20" id="home-wohnungssuche">
+    <div class="max-w-2xl">
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Deine Wohnungssuche starten</h2>
+      <p class="mt-3 text-base" style="color:var(--ink-soft)">Ein klarer Fahrplan mit den vier wichtigsten Schritten – direkt hier auf der Startseite.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4 mt-8">
+      <div class="surface rounded-xl p-5 flex gap-4">
+        <span class="font-display text-lg font-semibold shrink-0" style="color:var(--blue-deep)">1</span>
+        <div>
+          <p class="font-semibold" style="color:var(--ink)">Budget berechnen</p>
+          <p class="text-sm mt-1" style="color:var(--ink-soft)">Nutze den Mietrechner, um deine realistische monatliche Belastung zu kennen.</p>
+        </div>
+      </div>
+      <div class="surface rounded-xl p-5 flex gap-4">
+        <span class="font-display text-lg font-semibold shrink-0" style="color:var(--blue-deep)">2</span>
+        <div>
+          <p class="font-semibold" style="color:var(--ink)">Unterlagen vorbereiten</p>
+          <p class="text-sm mt-1" style="color:var(--ink-soft)">Erstelle deine persönliche Checkliste, damit du bei Zusagen schnell reagieren kannst.</p>
+        </div>
+      </div>
+      <div class="surface rounded-xl p-5 flex gap-4">
+        <span class="font-display text-lg font-semibold shrink-0" style="color:var(--blue-deep)">3</span>
+        <div>
+          <p class="font-semibold" style="color:var(--ink)">Mieterselbstauskunft ausfüllen</p>
+          <p class="text-sm mt-1" style="color:var(--ink-soft)">Halte deine Angaben bereit, um sie bei Besichtigungen direkt mitzugeben.</p>
+        </div>
+      </div>
+      <div class="surface rounded-xl p-5 flex gap-4">
+        <span class="font-display text-lg font-semibold shrink-0" style="color:var(--blue-deep)">4</span>
+        <div>
+          <p class="font-semibold" style="color:var(--ink)">Städte und Preise vergleichen</p>
+          <p class="text-sm mt-1" style="color:var(--ink-soft)">Verschaffe dir einen groben Überblick, bevor du Anzeigen durchsuchst.</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-8">
+      <button type="button" onclick="goToAngaben()" class="btn-primary px-6 py-3.5 rounded-lg font-semibold">Jetzt starten</button>
+    </div>
+  </div>
+
+  <!-- RECHNER (homepage embedded — full calculator with m²-Rechner stays on its own page, reachable via Mehr ▾) -->
+  <div class="border-t" style="border-color:var(--line)" id="home-rechner">
+    <div class="max-w-5xl mx-auto px-5 py-20">
+      <div class="max-w-2xl">
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Kostenloser Mietrechner</h2>
+        <p class="mt-3 text-base" style="color:var(--ink-soft)">Berechne direkt hier deine voraussichtlichen monatlichen Wohnkosten.</p>
+      </div>
+
+      <div class="surface rounded-2xl p-6 sm:p-8 mt-8">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <label class="text-sm">Kaltmiete (€)
+            <input type="number" min="0" step="1" id="hr-kalt" value="800" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+          </label>
+          <label class="text-sm">Nebenkosten (€)
+            <input type="number" min="0" step="1" id="hr-neben" value="150" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+          </label>
+          <label class="text-sm">Heizkosten (€)
+            <input type="number" min="0" step="1" id="hr-heiz" value="60" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+          </label>
+          <label class="text-sm">Strom (€)
+            <input type="number" min="0" step="1" id="hr-strom" value="50" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+          </label>
+        </div>
+        <div class="rounded-xl p-5 mt-6" style="background:var(--blue-tint)">
+          <p class="text-sm" style="color:var(--blue-deep)">Geschätzte monatliche Wohnkosten</p>
+          <p class="font-display text-3xl font-semibold mt-1" id="hr-monthly" style="color:var(--blue-deep)">€ 1.060</p>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-6">
+          <a href="#rechner" class="btn-secondary px-5 py-3 rounded-lg font-semibold">Erweiterten Rechner öffnen</a>
+        </div>
+        <p class="text-xs mt-4" style="color:var(--ink-soft)">Allgemeine Schätzung / Orientierung – keine Finanz- oder Rechtsberatung.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="border-t" style="border-color: var(--line); background: var(--bg-alt)">
+    <div class="max-w-6xl mx-auto px-5 py-20">
+      <div class="max-w-2xl">
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Werkzeuge für deine Wohnungssuche</h2>
+        <p class="mt-3 text-base" style="color:var(--ink-soft)">Praktische Rechner und Informationen, die dir bei der Wohnungssuche helfen.</p>
+      </div>
+
+      <div class="mt-10 grid md:grid-cols-3 gap-5">
+        <a href="#rechner" class="card-lift surface rounded-2xl p-6 block">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:var(--blue-tint)">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="16" height="16" rx="3" stroke="#1E3F73" stroke-width="1.6"/><path d="M7 8h8M7 12h8M7 16h4" stroke="#1E3F73" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="font-semibold text-lg" style="color:var(--ink)">Mietrechner</h3>
+          <p class="mt-2 text-sm" style="color:var(--ink-soft)">Berechne deine voraussichtlichen monatlichen Wohnkosten.</p>
+        </a>
+        <a href="#rechner" class="card-lift surface rounded-2xl p-6 block">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:var(--blue-tint)">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 19V9l8-6 8 6v10" stroke="#1E3F73" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 19v-6h6v6" stroke="#1E3F73" stroke-width="1.6"/></svg>
+          </div>
+          <h3 class="font-semibold text-lg" style="color:var(--ink)">Quadratmeter-Rechner</h3>
+          <p class="mt-2 text-sm" style="color:var(--ink-soft)">Finde heraus, wie viel du tatsächlich pro Quadratmeter bezahlst.</p>
+        </a>
+        <a href="#mietpreise" class="card-lift surface rounded-2xl p-6 block">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style="background:var(--blue-tint)">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 18h16M6 18v-6M11 18V6M16 18v-9" stroke="#1E3F73" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="font-semibold text-lg" style="color:var(--ink)">Mietpreise vergleichen</h3>
+          <p class="mt-2 text-sm" style="color:var(--ink-soft)">Verschaffe dir einen Überblick über Mietpreise in Städten.</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOCUMENT PROMO -->
+  <div class="max-w-6xl mx-auto px-5 py-20">
+    <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold leading-tight" style="color:var(--ink)">Deine Unterlagen können den Unterschied machen.</h2>
+        <p class="mt-5 text-base leading-relaxed" style="color:var(--ink-soft)">
+          Bei beliebten Wohnungen konkurrierst du häufig mit vielen anderen Interessenten. Deshalb solltest du deine wichtigsten Unterlagen vorbereitet haben, damit du dich schnell und professionell bewerben kannst.
+        </p>
+        <a href="#angaben" class="mt-7 inline-flex btn-primary px-6 py-3.5 rounded-lg font-semibold">Jetzt starten</a>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="surface rounded-xl p-4"><p class="font-semibold text-sm" style="color:var(--ink)">SCHUFA</p><p class="text-xs mt-1" style="color:var(--ink-soft)">Bonitätsauskunft</p></div>
+        <div class="surface rounded-xl p-4"><p class="font-semibold text-sm" style="color:var(--ink)">Einkommensnachweis</p><p class="text-xs mt-1" style="color:var(--ink-soft)">letzte 3 Gehaltsabrechnungen</p></div>
+        <div class="surface rounded-xl p-4"><p class="font-semibold text-sm" style="color:var(--ink)">Mieterselbstauskunft</p><p class="text-xs mt-1" style="color:var(--ink-soft)">Angaben zur Person</p></div>
+        <div class="surface rounded-xl p-4"><p class="font-semibold text-sm" style="color:var(--ink)">Arbeitsvertrag</p><p class="text-xs mt-1" style="color:var(--ink-soft)">Nachweis Anstellung</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WOHNSTART KOMPLETT (one package; replaces the old STANDARD/PLUS/PREMIUM teaser) -->
+  <div class="border-t" style="border-color:var(--line); background:var(--bg-alt)" id="home-komplett">
+    <div class="max-w-6xl mx-auto px-5 py-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center">
+      <div>
+        <span class="tag surface" style="color:var(--blue-deep)">Ein Paket. Alles drin.</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold mt-4" style="color:var(--ink)">WohnStart Komplett</h2>
+        <p class="mt-3 text-lg leading-relaxed" style="color:var(--ink)">Einmal kaufen – alle wichtigen Funktionen für deine Wohnungsbewerbung nutzen.</p>
+        <ul class="grid sm:grid-cols-2 gap-x-6 gap-y-4 mt-8">
+          <li class="flex gap-3"><span class="checkmark shrink-0" style="color:var(--green)">✓</span><span><span class="block font-semibold text-sm" style="color:var(--ink)">Persönliche Angaben einmal eingeben</span><span class="block text-sm mt-0.5" style="color:var(--ink-soft)">Name, Adresse, Beruf, Einkommen und Haushalt nur einmal erfassen.</span></span></li>
+          <li class="flex gap-3"><span class="checkmark shrink-0" style="color:var(--green)">✓</span><span><span class="block font-semibold text-sm" style="color:var(--ink)">Dokumente automatisch ausfüllen</span><span class="block text-sm mt-0.5" style="color:var(--ink-soft)">Mieterselbstauskunft, Anschreiben und Deckblatt mit deinen Angaben – als PDF.</span></span></li>
+          <li class="flex gap-3"><span class="checkmark shrink-0" style="color:var(--green)">✓</span><span><span class="block font-semibold text-sm" style="color:var(--ink)">Vorlagen nutzen</span><span class="block text-sm mt-0.5" style="color:var(--ink-soft)">Sachliche WohnStart-Vorlagen plus Druckvorlagen und ausführliche Checkliste.</span></span></li>
+          <li class="flex gap-3"><span class="checkmark shrink-0" style="color:var(--green)">✓</span><span><span class="block font-semibold text-sm" style="color:var(--ink)">KI-Dokumenten-Check</span><span class="block text-sm mt-0.5" style="color:var(--ink-soft)">Prüft PDFs auf Lesbarkeit, fehlende Seiten, Aktualität und Widersprüche.</span></span></li>
+          <li class="flex gap-3"><span class="checkmark shrink-0" style="color:var(--green)">✓</span><span><span class="block font-semibold text-sm" style="color:var(--ink)">Bewerbungs-Checkliste</span><span class="block text-sm mt-0.5" style="color:var(--ink-soft)">Sieh auf einen Blick, was vorhanden ist und was noch fehlt.</span></span></li>
+          <li class="flex gap-3"><span class="checkmark shrink-0" style="color:var(--green)">✓</span><span><span class="block font-semibold text-sm" style="color:var(--ink)">Unterlagen organisieren</span><span class="block text-sm mt-0.5" style="color:var(--ink-soft)">Identität, Einkommen, Bonität und Weiteres geordnet an einem Ort.</span></span></li>
+        </ul>
+      </div>
+      <div class="surface rounded-2xl p-7 sm:p-8" style="border-color:var(--blue-deep); border-width:2px; box-shadow:0 20px 40px -24px rgba(30,63,115,.4)">
+        <p class="text-sm font-semibold" style="color:var(--blue-deep)">WohnStart Komplett</p>
+        <p class="font-display text-4xl font-semibold mt-2" style="color:var(--ink)">€ <span data-komplett-price>29,99</span><span class="text-base font-normal" style="color:var(--ink-soft)"> einmalig</span></p>
+        <p class="text-sm mt-2" style="color:var(--ink-soft)">Kein Abo. Einmal bezahlen, dauerhaft nutzen.</p>
+        <button type="button" class="btn-primary w-full mt-6 px-5 py-3.5 rounded-lg font-semibold" data-checkout="komplett">WohnStart Komplett kaufen</button>
+        <p class="text-xs flex items-center justify-center gap-1.5 mt-3" style="color:var(--ink-soft)"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="2" y="5.2" width="8" height="5.3" rx="1" stroke="currentColor" stroke-width="1"/><path d="M3.5 5.2V3.6a2.5 2.5 0 0 1 5 0v1.6" stroke="currentColor" stroke-width="1"/></svg>Sichere Zahlung über Stripe</p>
+        <a href="#kurs" class="block text-center text-sm font-semibold mt-4" style="color:var(--blue-deep)">Alle Details ansehen</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECHNER ============ -->
+<section class="route-page" id="page-rechner" data-page="rechner">
+  <div class="max-w-5xl mx-auto px-5 py-14">
+    <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Rechner</h1>
+    <p class="mt-2" style="color:var(--ink-soft)">Zwei Werkzeuge, mit denen du deine Wohnkosten realistisch einschätzt.</p>
+
+    <!-- MIETRECHNER -->
+    <div class="surface rounded-2xl p-6 sm:p-8 mt-10">
+      <h2 class="font-semibold text-xl" style="color:var(--ink)">Mietrechner</h2>
+      <p class="text-sm mt-1" style="color:var(--ink-soft)">Berechne deine voraussichtlichen monatlichen Wohnkosten.</p>
+
+      <div class="grid sm:grid-cols-2 gap-4 mt-6">
+        <label class="text-sm">Kaltmiete (€)
+          <input type="number" min="0" step="1" id="mr-kalt" value="800" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+        <label class="text-sm">Nebenkosten (€)
+          <input type="number" min="0" step="1" id="mr-neben" value="150" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+        <label class="text-sm">Heizkosten (€)
+          <input type="number" min="0" step="1" id="mr-heiz" value="60" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+        <label class="text-sm">Strom (€)
+          <input type="number" min="0" step="1" id="mr-strom" value="50" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+        <label class="text-sm">Internet (€)
+          <input type="number" min="0" step="1" id="mr-internet" value="30" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+        <label class="text-sm">Sonstige monatliche Kosten (€)
+          <input type="number" min="0" step="1" id="mr-sonstige" value="0" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4 mt-6">
+        <div class="rounded-xl p-5" style="background:var(--blue-tint)">
+          <p class="text-sm" style="color:var(--blue-deep)">Gesamte monatliche Wohnkosten</p>
+          <p class="font-display text-3xl font-semibold mt-1" id="mr-monthly" style="color:var(--blue-deep)">€ 1.090</p>
+        </div>
+        <div class="rounded-xl p-5" style="background:var(--green-tint)">
+          <p class="text-sm" style="color:var(--green)">Monatliche Wohnkosten pro Jahr</p>
+          <p class="font-display text-3xl font-semibold mt-1" id="mr-yearly" style="color:var(--green)">€ 13.080</p>
+        </div>
+      </div>
+      <p class="text-xs mt-4" style="color:var(--ink-soft)">Allgemeine Schätzung / Orientierung – keine Finanz- oder Rechtsberatung. Als grobe Orientierung wird oft empfohlen, die Wohnkosten nicht viel höher als ein Drittel des Nettoeinkommens anzusetzen.</p>
+    </div>
+
+    <!-- QUADRATMETER-RECHNER -->
+    <div class="surface rounded-2xl p-6 sm:p-8 mt-8">
+      <h2 class="font-semibold text-xl" style="color:var(--ink)">Quadratmeter-Rechner</h2>
+      <p class="text-sm mt-1" style="color:var(--ink-soft)">Finde heraus, wie viel du tatsächlich pro Quadratmeter bezahlst.</p>
+
+      <div class="grid sm:grid-cols-2 gap-4 mt-6">
+        <label class="text-sm">Kaltmiete (€)
+          <input type="number" min="0" step="1" id="qm-kalt" value="900" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+        <label class="text-sm">Wohnfläche (m²)
+          <input type="number" min="1" step="1" id="qm-flaeche" value="50" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+        </label>
+      </div>
+      <div class="rounded-xl p-5 mt-5" style="background:var(--blue-tint)">
+        <p class="text-sm" style="color:var(--blue-deep)">Preis pro m²</p>
+        <p class="font-display text-2xl font-semibold mt-1" id="qm-result" style="color:var(--blue-deep)">€ 18,00 / m²</p>
+      </div>
+
+      <div class="mt-8 pt-6" style="border-top:1px solid var(--line)">
+        <h3 class="font-semibold" style="color:var(--ink)">Was darf eine Wohnung kosten?</h3>
+        <p class="text-sm mt-1" style="color:var(--ink-soft)">Gib deine gewünschte Fläche und deinen maximalen Preis pro m² ein.</p>
+        <div class="grid sm:grid-cols-2 gap-4 mt-5">
+          <label class="text-sm">Gewünschte Wohnfläche (m²)
+            <input type="number" min="1" step="1" id="qm-rev-flaeche" value="55" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+          </label>
+          <label class="text-sm">Maximaler Preis pro m² (€)
+            <input type="number" min="0" step="0.5" id="qm-rev-preis" value="16" class="mt-1.5 w-full rounded-lg px-3 py-2.5">
+          </label>
+        </div>
+        <div class="rounded-xl p-5 mt-5" style="background:var(--green-tint)">
+          <p class="text-sm" style="color:var(--green)">Maximale Kaltmiete</p>
+          <p class="font-display text-2xl font-semibold mt-1" id="qm-rev-result" style="color:var(--green)">€ 880,00</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MIETPREISE ============ -->
+<section class="route-page" id="page-mietpreise" data-page="mietpreise">
+  <div class="max-w-5xl mx-auto px-5 py-14">
+    <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Mietpreise vergleichen</h1>
+    <p class="mt-2" style="color:var(--ink-soft)">Verschaffe dir einen Überblick über Mietpreise in verschiedenen Städten Deutschlands.</p>
+
+    <div class="rounded-xl p-4 mt-6 flex gap-3 items-start" style="background:var(--amber-tint)">
+      <span style="color:var(--amber)">▲</span>
+      <p class="text-sm" style="color:var(--ink)"><strong>Beispieldaten.</strong> Diese Werte dienen nur zur Demonstration. Tatsächliche Mietpreise können je nach Lage, Baujahr, Ausstattung und Wohnungsgröße stark variieren.</p>
+    </div>
+
+    <label class="text-sm mt-8 block max-w-xs">Stadt auswählen
+      <select id="city-select" class="mt-1.5 w-full rounded-lg px-3 py-2.5"></select>
+    </label>
+
+    <div id="city-results" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6"></div>
+  </div>
+</section>
+
+<!-- ============ NEU IN DEUTSCHLAND – NOCH KEINE SCHUFA? ============
+     Information page for newcomers. Styles: public/css/neu-in-deutschland.css ·
+     Logic (FAQ, scroll, reveal, page title/meta): inline script below (ROUTE_META) -->
+<section class="route-page" id="page-neu-in-deutschland" data-page="neu-in-deutschland" aria-labelledby="ndz-title">
+
+  <!-- HERO -->
+  <div class="ndz-hero">
+    <div class="max-w-6xl mx-auto px-5 pt-14 pb-16 lg:pt-20 lg:pb-24 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center">
+      <div>
+        <span class="tag surface" style="color:var(--blue-deep)">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.6" stroke="#1E3F73" stroke-width="1.4"/><path d="M7 4.2v3.3M7 9.6v.2" stroke="#1E3F73" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Wohnungssuche in Deutschland · SCHUFA
+        </span>
+        <h1 id="ndz-title" class="font-display mt-5 text-[2.3rem] leading-[1.1] sm:text-5xl sm:leading-[1.06] font-semibold" style="color:var(--ink)">Neu in Deutschland und noch keine SCHUFA?</h1>
+        <p class="mt-5 text-lg sm:text-xl leading-relaxed font-medium" style="color:var(--ink)">Keine Panik. Eine fehlende SCHUFA-Historie bedeutet nicht automatisch, dass du keine Wohnung bekommen kannst.</p>
+        <p class="mt-4 text-base leading-relaxed max-w-xl" style="color:var(--ink-soft)">Wenn du gerade nach Deutschland gezogen bist, kann es sein, dass SCHUFA noch keine oder nur wenige Informationen über dich hat. Das ist nicht dasselbe wie eine schlechte Bonität.</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <button type="button" class="btn-primary px-6 py-3.5 rounded-lg font-semibold inline-flex items-center gap-2" data-ndz-scroll="ndz-unterschied">
+            So verbesserst du deine Wohnungsbewerbung
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- thought bubble -->
+      <div class="ndz-reveal">
+        <figure class="ndz-quote surface rounded-2xl p-6 sm:p-8">
+          <svg width="30" height="24" viewBox="0 0 30 24" fill="none" aria-hidden="true"><path d="M2 22V13C2 6.5 5.6 2.6 12 2v4.2C8.6 7 7.2 9 7 12h5v10H2zm16 0V13c0-6.5 3.6-10.4 10-11v4.2C24.6 7 23.2 9 23 12h5v10H18z" fill="var(--blue-tint)"/></svg>
+          <blockquote class="font-display text-xl sm:text-2xl leading-snug mt-3" style="color:var(--ink)">„Ich bin neu in Deutschland. Ich habe noch keine SCHUFA. Was soll ich jetzt machen?“</blockquote>
+          <figcaption class="text-sm mt-5 flex items-start gap-3" style="color:var(--ink-soft)">
+            <span class="ndz-dot" aria-hidden="true"></span>
+            <span>Der Vermieter fragt nach einer SCHUFA-Auskunft – genau diese Situation erleben viele Menschen bei ihrer ersten Wohnung in Deutschland.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEINE HISTORIE vs. NEGATIVE SCHUFA -->
+  <div class="max-w-6xl mx-auto px-5 py-16 lg:py-20" id="ndz-unterschied" style="scroll-margin-top:96px">
+    <div class="max-w-2xl ndz-reveal">
+      <p class="ndz-eyebrow">Der wichtigste Unterschied</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold mt-2" style="color:var(--ink)">Keine SCHUFA-Historie ist etwas anderes als eine negative SCHUFA</h2>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5 mt-10">
+      <article class="ndz-card ndz-card--neutral surface rounded-2xl p-6 sm:p-8 ndz-reveal">
+        <div class="flex items-center gap-3">
+          <span class="ndz-icon ndz-icon--blue" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="4" width="16" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M7 9h8M7 13h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 2.6"/></svg></span>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide" style="color:var(--blue-deep)">Häufig bei Neuankömmlingen</p>
+            <h3 class="font-display text-2xl font-semibold" style="color:var(--ink)">Keine SCHUFA-Historie</h3>
+          </div>
+        </div>
+        <ul class="ndz-list mt-6">
+          <li>Du bist erst seit kurzer Zeit in Deutschland.</li>
+          <li>SCHUFA hat möglicherweise noch nicht genügend Daten über dich.</li>
+          <li>Es kann deshalb sein, dass noch kein aussagekräftiger Score vorhanden ist.</li>
+          <li><strong>Das bedeutet nicht automatisch</strong>, dass du zahlungsunfähig oder ein schlechter Mieter bist.</li>
+        </ul>
+        <p class="ndz-pill ndz-pill--blue mt-6">Bedeutet: Es gibt einfach noch wenig Daten.</p>
+      </article>
+      <article class="ndz-card ndz-card--warn surface rounded-2xl p-6 sm:p-8 ndz-reveal">
+        <div class="flex items-center gap-3">
+          <span class="ndz-icon ndz-icon--amber" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3l8.5 15h-17L11 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 9v4M11 15.6v.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide" style="color:var(--amber)">Eine andere Situation</p>
+            <h3 class="font-display text-2xl font-semibold" style="color:var(--ink)">Negative SCHUFA</h3>
+          </div>
+        </div>
+        <ul class="ndz-list ndz-list--amber mt-6">
+          <li>Hier existieren bereits negative Zahlungserfahrungen bzw. entsprechende Einträge.</li>
+          <li>Das ist etwas anderes, als einfach noch keine Historie zu haben.</li>
+        </ul>
+        <p class="ndz-pill ndz-pill--amber mt-6">Bedeutet: Es gibt bereits negative Einträge.</p>
+      </article>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="border-t" style="border-color:var(--line); background:var(--bg-alt)">
+    <div class="max-w-4xl mx-auto px-5 py-16 lg:py-20">
+      <div class="ndz-reveal">
+        <p class="ndz-eyebrow">Schritt für Schritt</p>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold mt-2" style="color:var(--ink)">Was kannst du jetzt tun?</h2>
+        <p class="mt-3 max-w-2xl" style="color:var(--ink-soft)">Fünf Schritte, die dir beim Ankommen und bei deiner ersten Wohnungsbewerbung helfen.</p>
+      </div>
+      <ol class="ndz-timeline mt-10">
+        <li class="ndz-step ndz-reveal">
+          <span class="ndz-step-num" aria-hidden="true">1</span>
+          <div class="surface rounded-2xl p-5 sm:p-6">
+            <h3 class="font-semibold text-lg" style="color:var(--ink)">Adresse anmelden</h3>
+            <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Melde deinen Wohnsitz nach dem Einzug bei der zuständigen Meldebehörde (Bürgeramt bzw. Einwohnermeldeamt) an – in der Regel innerhalb von zwei Wochen. Die Meldebescheinigung ist ein wichtiger erster Nachweis für viele weitere Schritte in Deutschland.</p>
+          </div>
+        </li>
+        <li class="ndz-step ndz-reveal">
+          <span class="ndz-step-num" aria-hidden="true">2</span>
+          <div class="surface rounded-2xl p-5 sm:p-6">
+            <h3 class="font-semibold text-lg" style="color:var(--ink)">Deutsches Bankkonto eröffnen</h3>
+            <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Ein deutsches Girokonto ist im Alltag nützlich – zum Beispiel für dein Gehalt, Miete und Verträge wie Strom, Internet oder Handy.</p>
+            <p class="ndz-note mt-3"><strong>Wichtig:</strong> Nimm keine Kredite oder unnötigen Finanzprodukte auf, nur um eine SCHUFA-Historie aufzubauen.</p>
+          </div>
+        </li>
+        <li class="ndz-step ndz-reveal">
+          <span class="ndz-step-num" aria-hidden="true">3</span>
+          <div class="surface rounded-2xl p-5 sm:p-6">
+            <h3 class="font-semibold text-lg" style="color:var(--ink)">Rechnungen pünktlich bezahlen</h3>
+            <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Bezahle vertragliche Verpflichtungen wie Handyvertrag, Strom oder Internet zuverlässig und pünktlich. Offene Forderungen und Mahnungen solltest du vermeiden – sie können später zu negativen Einträgen führen.</p>
+          </div>
+        </li>
+        <li class="ndz-step ndz-reveal">
+          <span class="ndz-step-num" aria-hidden="true">4</span>
+          <div class="surface rounded-2xl p-5 sm:p-6">
+            <h3 class="font-semibold text-lg" style="color:var(--ink)">Deine anderen Unterlagen vorbereiten</h3>
+            <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Vermieter schauen oft auf die gesamte Bewerbung – nicht nur auf die SCHUFA. Bereite deshalb vor, was du vorlegen kannst:</p>
+            <ul class="ndz-chips mt-3">
+              <li>Arbeitsvertrag</li><li>Gehaltsnachweise</li><li>Aufenthaltstitel / entsprechender Nachweis</li>
+              <li>Mietschuldenfreiheitsbescheinigung, falls vorhanden</li><li>Bürgschaft, falls vorhanden</li><li>SCHUFA-Nachweis, falls vorhanden</li>
+            </ul>
+          </div>
+        </li>
+        <li class="ndz-step ndz-reveal">
+          <span class="ndz-step-num" aria-hidden="true">5</span>
+          <div class="surface rounded-2xl p-5 sm:p-6">
+            <h3 class="font-semibold text-lg" style="color:var(--ink)">Bewerbung professionell vorbereiten</h3>
+            <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Eine vollständige und gut geordnete Bewerbung macht es Vermietern leichter, dich einzuschätzen. Erkläre in deinem Anschreiben kurz und offen, dass du neu in Deutschland bist und deshalb noch keine lange SCHUFA-Historie hast.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- STATEMENT -->
+  <div class="max-w-6xl mx-auto px-5 py-16 lg:py-20">
+    <div class="ndz-statement rounded-3xl px-6 py-10 sm:px-12 sm:py-14 ndz-reveal">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true"><circle cx="18" cy="18" r="16" stroke="rgba(255,255,255,.5)" stroke-width="1.6"/><path d="M11.5 18.5l4.5 4.5 9-10" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2 class="font-display text-3xl sm:text-5xl font-semibold mt-5 leading-[1.12] max-w-3xl" style="color:#fff">„Keine SCHUFA ist nicht automatisch eine schlechte SCHUFA.“</h2>
+      <p class="mt-6 text-base sm:text-lg leading-relaxed max-w-3xl" style="color:rgba(255,255,255,.86)">Wenn du gerade erst nach Deutschland gekommen bist, kann eine fehlende SCHUFA-Historie einfach bedeuten, dass noch nicht genügend Daten vorhanden sind. Entscheidend ist deshalb, deine Situation transparent zu erklären und deine anderen Unterlagen vollständig vorzubereiten.</p>
+      <p class="mt-5 text-xs" style="color:rgba(255,255,255,.65)">Ob ein Vermieter deine Bewerbung annimmt, entscheidet er selbst – eine Zusage kann niemand garantieren.</p>
+    </div>
+  </div>
+
+  <!-- DOCUMENTS -->
+  <div class="border-t" style="border-color:var(--line)">
+    <div class="max-w-6xl mx-auto px-5 py-16 lg:py-20">
+      <div class="max-w-2xl ndz-reveal">
+        <p class="ndz-eyebrow">Deine Unterlagen</p>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold mt-2" style="color:var(--ink)">Was kannst du dem Vermieter zeigen?</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
+        <div class="ndz-doc surface rounded-xl p-5 ndz-reveal"><span class="ndz-check" aria-hidden="true">✓</span><p class="font-semibold" style="color:var(--ink)">Arbeitsvertrag</p><p class="text-xs mt-1" style="color:var(--ink-soft)">Nachweis deiner Beschäftigung</p></div>
+        <div class="ndz-doc surface rounded-xl p-5 ndz-reveal"><span class="ndz-check" aria-hidden="true">✓</span><p class="font-semibold" style="color:var(--ink)">Gehaltsnachweise</p><p class="text-xs mt-1" style="color:var(--ink-soft)">z. B. die letzten Gehaltsabrechnungen</p></div>
+        <div class="ndz-doc surface rounded-xl p-5 ndz-reveal"><span class="ndz-check" aria-hidden="true">✓</span><p class="font-semibold" style="color:var(--ink)">Aufenthaltstitel / Nachweis</p><p class="text-xs mt-1" style="color:var(--ink-soft)">je nach deiner Situation</p></div>
+        <div class="ndz-doc surface rounded-xl p-5 ndz-reveal"><span class="ndz-check" aria-hidden="true">✓</span><p class="font-semibold" style="color:var(--ink)">Mietschuldenfreiheits&shy;bescheinigung</p><p class="text-xs mt-1" style="color:var(--ink-soft)">falls vorhanden</p></div>
+        <div class="ndz-doc surface rounded-xl p-5 ndz-reveal"><span class="ndz-check" aria-hidden="true">✓</span><p class="font-semibold" style="color:var(--ink)">Bürgschaft</p><p class="text-xs mt-1" style="color:var(--ink-soft)">falls vorhanden</p></div>
+        <div class="ndz-doc surface rounded-xl p-5 ndz-reveal"><span class="ndz-check" aria-hidden="true">✓</span><p class="font-semibold" style="color:var(--ink)">SCHUFA-Nachweis</p><p class="text-xs mt-1" style="color:var(--ink-soft)">falls vorhanden</p></div>
+        <div class="ndz-doc surface rounded-xl p-5 ndz-reveal"><span class="ndz-check" aria-hidden="true">✓</span><p class="font-semibold" style="color:var(--ink)">Persönliches Anschreiben</p><p class="text-xs mt-1" style="color:var(--ink-soft)">kurz erklären, wer du bist</p></div>
+        <div class="ndz-doc ndz-doc--hint rounded-xl p-5 flex items-center ndz-reveal"><p class="text-sm font-semibold" style="color:var(--blue-deep)">Je nach Vermieter und Situation werden unterschiedliche Unterlagen verlangt.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="border-t" style="border-color:var(--line); background:var(--bg-alt)">
+    <div class="max-w-3xl mx-auto px-5 py-16 lg:py-20">
+      <div class="ndz-reveal">
+        <p class="ndz-eyebrow">Häufige Fragen</p>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold mt-2" style="color:var(--ink)">Wohnung mieten ohne SCHUFA – kurz erklärt</h2>
+      </div>
+      <div class="ndz-faq mt-8" id="ndz-faq">
+        <details class="ndz-faq-item surface rounded-xl">
+          <summary><span>Kann ich ohne SCHUFA eine Wohnung bekommen?</span><span class="ndz-faq-icon" aria-hidden="true"></span></summary>
+          <div class="ndz-faq-body"><p>Ja, grundsätzlich kann eine Wohnung auch ohne lange SCHUFA-Historie möglich sein. Ein Vermieter entscheidet jedoch selbst, welche Unterlagen er akzeptiert und an wen er vermietet.</p></div>
+        </details>
+        <details class="ndz-faq-item surface rounded-xl">
+          <summary><span>Was bedeutet es, wenn ich keinen SCHUFA-Score habe?</span><span class="ndz-faq-icon" aria-hidden="true"></span></summary>
+          <div class="ndz-faq-body"><p>Das kann passieren, wenn bei der SCHUFA noch nicht genügend Informationen über dich vorliegen, um einen aussagekräftigen Score zu berechnen – zum Beispiel, weil du erst seit Kurzem in Deutschland lebst. Ein fehlender Score ist kein negativer Eintrag.</p></div>
+        </details>
+        <details class="ndz-faq-item surface rounded-xl">
+          <summary><span>Soll ich einen Kredit aufnehmen, um SCHUFA aufzubauen?</span><span class="ndz-faq-icon" aria-hidden="true"></span></summary>
+          <div class="ndz-faq-body"><p class="ndz-faq-strong">Nein. Nimm keinen Kredit nur deshalb auf, um deine SCHUFA-Historie aufzubauen.</p><p>Ein Kredit verursacht Kosten und Verpflichtungen. Sinnvoller ist es, deine Rechnungen zuverlässig zu bezahlen und deine übrigen Unterlagen gut vorzubereiten.</p></div>
+        </details>
+        <details class="ndz-faq-item surface rounded-xl">
+          <summary><span>Welche Unterlagen sind für meine erste Wohnung besonders wichtig?</span><span class="ndz-faq-icon" aria-hidden="true"></span></summary>
+          <div class="ndz-faq-body"><p>Besonders wichtig sind meist Nachweise über dein Einkommen und deine Beschäftigung – etwa Arbeitsvertrag und Gehaltsnachweise. Je nach Situation können ein Aufenthaltstitel bzw. entsprechender Nachweis, eine Bürgschaft, eine Mietschuldenfreiheitsbescheinigung (falls vorhanden) und ein persönliches Anschreiben deine Bewerbung ergänzen.</p></div>
+        </details>
+        <details class="ndz-faq-item surface rounded-xl">
+          <summary><span>Kann ich meine SCHUFA-Daten prüfen?</span><span class="ndz-faq-icon" aria-hidden="true"></span></summary>
+          <div class="ndz-faq-body"><p>Ja. Du kannst bei der SCHUFA Auskunft darüber verlangen, welche Daten sie über dich gespeichert hat – die Datenkopie nach Art. 15 DSGVO ist kostenlos. Für eine Wohnungsbewerbung gibt es eigene Auskunftsformen, die für Vermieter gedacht sind und teilweise kostenpflichtig sind. Kläre am besten vorab, welche Auskunft dein Vermieter akzeptiert. Ob dabei bereits ein Score berechnet werden kann, hängt davon ab, wie viele Daten vorliegen.</p></div>
+        </details>
+      </div>
+      <p class="text-xs mt-6" style="color:var(--ink-soft)">Allgemeine Informationen zur Orientierung – keine Rechts- oder Finanzberatung.</p>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="max-w-6xl mx-auto px-5 py-16 lg:py-20">
+    <div class="surface rounded-3xl p-8 sm:p-12 grid lg:grid-cols-[1fr_auto] gap-8 items-center ndz-reveal" style="border-color:var(--blue-deep); border-width:2px">
+      <div>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold leading-tight" style="color:var(--ink)">Deine erste Wohnung in Deutschland beginnt mit einer guten Bewerbung.</h2>
+        <p class="mt-4 text-base sm:text-lg" style="color:var(--ink-soft)">Bereite deine Unterlagen strukturiert vor und erhöhe die Übersichtlichkeit deiner Wohnungsbewerbung.</p>
+      </div>
+      <button type="button" onclick="goToAngaben()" class="btn-primary px-7 py-4 rounded-lg font-semibold whitespace-nowrap">Jetzt Wohnungssuche starten</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KI-DOKUMENTEN-CHECK ============
+     Logic: public/js/ki-check.js · API: server/routes/ai-check.js -->
+<section class="route-page" id="page-ki-check" data-page="ki-check">
+  <div class="max-w-3xl mx-auto px-5 py-14">
+    <nav data-ws-tabs="ki-check" class="mb-8"></nav>
+    <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">KI-Dokumenten-Check</h1>
+    <p class="mt-3 text-base leading-relaxed" style="color:var(--ink-soft)">Lade ein Dokument für deine Wohnungsbewerbung hoch. WohnStart prüft, ob es lesbar, vollständig und aktuell ist – und sagt dir in einfachen Worten, was du verbessern solltest.</p>
+
+    <ol class="kc-steps mt-8" aria-label="Ablauf">
+      <li data-step="1" class="is-current"><span>1</span>PDF hochladen</li>
+      <li data-step="2"><span>2</span>Dokument prüfen</li>
+      <li data-step="3"><span>3</span>Analyse läuft</li>
+      <li data-step="4"><span>4</span>Ergebnis</li>
+    </ol>
+
+    <!-- Remaining checks (numbers come from the server: /api/ai-check/status) -->
+    <p id="kc-usage" class="hidden text-sm font-semibold mt-6" style="color:var(--blue-deep)" aria-live="polite"></p>
+
+    <!-- Shown when no checks are left -->
+    <div id="kc-locked" class="hidden surface rounded-2xl p-6 sm:p-8 mt-6">
+      <p id="kc-locked-title" class="font-display text-xl font-semibold" style="color:var(--ink)">Deine 2 kostenlosen Prüfungen sind aufgebraucht.</p>
+      <p id="kc-locked-text" class="text-sm mt-2" style="color:var(--ink-soft)">Mit WohnStart Komplett schaltest du weitere KI-Dokumentenprüfungen frei – zusammen mit allen anderen Funktionen.</p>
+      <a href="#kurs" id="kc-locked-cta" class="btn-primary inline-block mt-5 px-6 py-3.5 rounded-lg font-semibold">WohnStart Komplett ansehen</a>
+    </div>
+
+    <!-- Unavailable -->
+    <div id="kc-unavailable" class="hidden surface rounded-2xl p-6 mt-6">
+      <p class="font-semibold" style="color:var(--ink)">Der KI-Dokumenten-Check ist gerade nicht verfügbar.</p>
+      <p class="text-sm mt-1" style="color:var(--ink-soft)">Bitte versuche es später noch einmal.</p>
+    </div>
+
+    <!-- Upload -->
+    <div id="kc-upload" class="mt-6">
+      <label id="kc-drop" class="kc-drop flex flex-col items-center justify-center text-center px-6 py-16 sm:py-20">
+        <input type="file" id="kc-file" class="sr-only" accept="application/pdf,.pdf">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M13 7h13l7 7v21a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" stroke="var(--blue-deep)" stroke-width="1.8" stroke-linejoin="round"/><path d="M26 7v7h7" stroke="var(--blue-deep)" stroke-width="1.8" stroke-linejoin="round"/><path d="M22 30V19M17.5 23.5L22 19l4.5 4.5" stroke="var(--blue-deep)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="font-semibold text-lg mt-4" style="color:var(--ink)">PDF hierher ziehen</span>
+        <span class="text-sm mt-1" style="color:var(--ink-soft)">oder <span class="underline" style="color:var(--blue-deep)">Datei auswählen</span></span>
+        <span class="text-xs mt-4" style="color:var(--ink-soft)">Nur PDF · maximal 15 MB · bis 30 Seiten</span>
+      </label>
+      <p id="kc-file-error" class="kc-error hidden mt-3" role="alert"></p>
+
+      <div id="kc-selected" class="hidden surface rounded-2xl p-5 mt-4">
+        <div class="flex items-center gap-4">
+          <span class="kc-fileicon" aria-hidden="true">PDF</span>
+          <div class="min-w-0 flex-1">
+            <p id="kc-filename" class="font-semibold truncate" style="color:var(--ink)"></p>
+            <p id="kc-filesize" class="text-sm" style="color:var(--ink-soft)"></p>
+          </div>
+          <button type="button" id="kc-remove" class="text-sm underline shrink-0" style="color:var(--ink-soft)">Entfernen</button>
+        </div>
+        <button type="button" id="kc-submit" class="btn-primary w-full mt-5 px-6 py-3.5 rounded-lg font-semibold">Dokument prüfen</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="kc-loading" class="hidden surface rounded-2xl p-8 sm:p-10 mt-6 text-center" aria-live="polite">
+      <div class="kc-spinner mx-auto"></div>
+      <p class="font-display text-xl font-semibold mt-5" style="color:var(--ink)">Dokument wird analysiert…</p>
+      <p id="kc-loading-detail" class="text-sm mt-2" style="color:var(--ink-soft)">Wird sicher hochgeladen…</p>
+      <div class="kc-bar mt-6 max-w-sm mx-auto"><span id="kc-bar-fill"></span></div>
+      <p class="text-xs mt-5" style="color:var(--ink-soft)">Das dauert meist 15–40 Sekunden.</p>
+    </div>
+
+    <!-- Error -->
+    <div id="kc-error-box" class="hidden rounded-2xl p-6 mt-6" style="background:var(--kc-red-tint)" role="alert">
+      <p class="font-semibold" style="color:var(--kc-red)">Die Prüfung hat nicht geklappt</p>
+      <p id="kc-error-text" class="text-sm mt-1" style="color:var(--ink)"></p>
+      <div class="flex flex-wrap gap-3 mt-4">
+        <button type="button" id="kc-retry" class="btn-primary px-5 py-3 rounded-lg font-semibold">Erneut versuchen</button>
+        <button type="button" id="kc-other" class="btn-secondary px-5 py-3 rounded-lg font-semibold">Andere Datei wählen</button>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="kc-result" class="hidden mt-6"></div>
+
+    <p class="text-xs mt-8 leading-relaxed" style="color:var(--ink-soft)">Der KI-Dokumenten-Check ist eine KI-gestützte Vorbereitungshilfe von WohnStart. Er ist keine Prüfung durch eine Behörde, die SCHUFA, einen Anwalt oder einen Vermieter und sagt nichts darüber aus, ob ein Dokument echt oder rechtlich gültig ist oder akzeptiert wird. Die KI kann sich irren. Die endgültige Entscheidung trifft der Vermieter bzw. die zuständige Stelle. Dein Dokument wird nur für diese Prüfung an unseren KI-Dienstleister (Anthropic) übermittelt und von WohnStart nicht gespeichert.</p>
+  </div>
+</section>
+
+<!-- ============ MEIN WOHNSTART (Übersicht) ============
+     WohnStart Komplett pages. Logic: public/js/komplett.js · Styles: public/css/komplett.css -->
+<section class="route-page" id="page-mein-wohnstart" data-page="mein-wohnstart">
+  <div class="max-w-5xl mx-auto px-5 py-14" id="ws-hub">
+    <nav data-ws-tabs="mein-wohnstart" class="mb-8"></nav>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Mein WohnStart</h1>
+      <div id="ws-hub-status"></div>
+    </div>
+    <p class="mt-2 max-w-2xl" style="color:var(--ink-soft)">Deine Wohnungsbewerbung an einem Ort: Angaben, Dokumente und Unterlagen.</p>
+
+    <div id="ws-hub-cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8"></div>
+
+    <p class="text-xs mt-8 leading-relaxed" style="color:var(--ink-soft)">Deine Angaben und Unterlagen werden nur in diesem Browser auf diesem Gerät gespeichert – nicht auf dem WohnStart-Server. Auf einem anderen Gerät oder nach dem Löschen der Browserdaten sind sie nicht mehr verfügbar.</p>
+  </div>
+</section>
+
+<!-- ============ MEINE ANGABEN ============ -->
+<section class="route-page" id="page-angaben" data-page="angaben">
+  <div class="max-w-3xl mx-auto px-5 py-14">
+    <nav data-ws-tabs="angaben" class="mb-8"></nav>
+    <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Meine Angaben</h1>
+    <p class="mt-3 leading-relaxed" style="color:var(--ink-soft)">Gib deine Daten einmal ein. WohnStart überträgt sie automatisch in deine Dokumente – du musst nichts doppelt eintippen.</p>
+
+    <div class="surface rounded-2xl p-5 mt-6">
+      <div class="flex flex-wrap justify-between gap-2 text-sm">
+        <span id="ws-angaben-pct" class="font-semibold" style="color:var(--ink)">0 % ausgefüllt</span>
+        <span id="ws-angaben-saved" class="ws-saved" aria-live="polite"></span>
+      </div>
+      <div class="ws-meter mt-2"><span id="ws-angaben-bar" style="width:0%"></span></div>
+      <p class="text-xs mt-3 leading-relaxed" style="color:var(--ink-soft)">* Pflichtfeld für Dokumente. Fülle nur aus, was du angeben möchtest – leere Felder bleiben im Dokument leer. Fragen zu Herkunft, Religion, Gesundheit oder Familienplanung stellt WohnStart bewusst nicht.</p>
+    </div>
+
+    <div id="ws-angaben-form" class="mt-6"></div>
+
+    <div class="flex flex-wrap items-center gap-4 mt-8">
+      <button type="button" id="ws-angaben-done" class="btn-primary px-6 py-3.5 rounded-lg font-semibold">Weiter zu den Dokumenten</button>
+      <button type="button" id="ws-angaben-clear" class="text-sm underline" style="color:var(--ink-soft)">Alle Angaben löschen</button>
+    </div>
+    <p class="text-xs mt-6 leading-relaxed" style="color:var(--ink-soft)">Deine Angaben werden automatisch nur in diesem Browser gespeichert, nicht auf dem WohnStart-Server. Wenn du ein PDF erstellst, werden sie einmalig zur Erstellung übertragen und danach nicht gespeichert.</p>
+  </div>
+</section>
+
+<!-- ============ DOKUMENTE ERSTELLEN ============
+     Meine Angaben → Dokument auswählen → automatisch ausfüllen → Vorschau → PDF erstellen -->
+<section class="route-page" id="page-dokument-erstellen" data-page="dokument-erstellen">
+  <div class="max-w-4xl mx-auto px-5 py-14">
+    <nav data-ws-tabs="dokument-erstellen" class="mb-8"></nav>
+    <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Dokumente erstellen</h1>
+    <p class="mt-3 leading-relaxed max-w-2xl" style="color:var(--ink-soft)">Wähle eine Vorlage – WohnStart füllt sie automatisch mit deinen Angaben aus. Du siehst eine Vorschau und erstellst daraus ein professionelles PDF.</p>
+
+    <ol class="kc-steps mt-8" id="ws-doc-steps" aria-label="Ablauf">
+      <li data-step="1" class="is-current"><span>1</span>Meine Angaben</li>
+      <li data-step="2"><span>2</span>Dokument auswählen</li>
+      <li data-step="3"><span>3</span>Automatisch ausfüllen</li>
+      <li data-step="4"><span>4</span>Vorschau</li>
+      <li data-step="5"><span>5</span>PDF erstellen</li>
+    </ol>
+
+    <div id="ws-doc-profile" class="surface rounded-xl p-4 mt-6 flex items-center gap-3 text-sm"></div>
+
+    <h2 class="font-semibold text-lg mt-10" style="color:var(--ink)">Dokument auswählen</h2>
+    <div id="ws-doc-cards" class="grid md:grid-cols-3 gap-4 mt-4"></div>
+    <p class="text-xs mt-3 leading-relaxed" style="color:var(--ink-soft)">Alle Dokumente hier sind <strong>WohnStart-Vorlagen</strong> – keine amtlichen Formulare und keine offiziellen Nachweise. Nachweise wie SCHUFA-Auskunft, Gehaltsabrechnung oder Mietschuldenfreiheitsbescheinigung kann WohnStart nicht erstellen; diese bekommst du von der jeweiligen Stelle.</p>
+
+    <div id="ws-doc-details" class="hidden mt-10" style="scroll-margin-top:96px">
+      <h2 class="font-semibold text-lg" style="color:var(--ink)">Automatisch ausfüllen</h2>
+      <div id="ws-autofill" class="mt-3"></div>
+
+      <div class="surface rounded-2xl p-5 sm:p-6 mt-5">
+        <p class="font-semibold" style="color:var(--ink)">Angaben zu dieser Bewerbung</p>
+        <div id="ws-doc-extra" class="mt-4"></div>
+        <div id="ws-letter-wrap" class="hidden mt-5">
+          <label class="ws-label"><span>Text des Anschreibens <span class="ws-opt">– automatisch vorformuliert, du kannst ihn anpassen</span></span>
+            <textarea id="ws-letter-text" class="ws-input" rows="11" maxlength="6000"></textarea>
+          </label>
+          <button type="button" id="ws-letter-reset" class="ws-link mt-2">Text neu aus meinen Angaben erzeugen</button>
+        </div>
+        <div id="ws-anlagen-wrap" class="hidden mt-5">
+          <p class="ws-label">Unterlagen, die du beilegst</p>
+          <div id="ws-anlagen" class="grid sm:grid-cols-2 gap-2 mt-2"></div>
+        </div>
+      </div>
+
+      <h2 class="font-semibold text-lg mt-10" style="color:var(--ink)">Vorschau</h2>
+      <p id="ws-doc-warn" class="hidden text-sm rounded-lg px-3 py-2.5 mt-3" style="background:var(--amber-tint); color:var(--ink)"></p>
+      <div class="ws-paper-wrap mt-4">
+        <div class="ws-paper" id="ws-preview"></div>
+        <div id="ws-preview-lock" class="ws-lock hidden">
+          <div class="surface rounded-xl p-5 text-center max-w-sm">
+            <p class="font-semibold" style="color:var(--ink)">Das PDF erstellst du mit WohnStart Komplett.</p>
+            <a href="#kurs" class="btn-primary inline-block mt-3 px-5 py-3 rounded-lg font-semibold text-sm">WohnStart Komplett ansehen</a>
+          </div>
+        </div>
+      </div>
+      <p class="text-xs mt-2" style="color:var(--ink-soft)"><span class="px-1 rounded" style="background:#FFF6D6;color:#0E1A2B">Markiert</span> = automatisch aus deinen Angaben übernommen.</p>
+
+      <div class="mt-6"><button type="button" id="ws-pdf-btn" class="btn-primary px-6 py-3.5 rounded-lg font-semibold">PDF erstellen</button></div>
+      <p id="ws-pdf-error" class="kc-error hidden mt-3" role="alert"></p>
+      <div id="ws-pdf-done" class="hidden rounded-xl p-4 mt-4" style="background:var(--green-tint)" role="status">
+        <p class="font-semibold" style="color:var(--green)">✓ PDF erstellt und heruntergeladen.</p>
+        <p class="text-sm mt-1" style="color:var(--ink)">Eine Kopie liegt in <a href="#unterlagen" class="ws-link">Meine Unterlagen</a>. <span id="ws-pdf-done-store"></span> Bitte lies das Dokument vor dem Versand durch und unterschreibe es, wo nötig.</p>
+      </div>
+    </div>
+
+    <div class="surface rounded-2xl p-6 mt-12">
+      <p class="font-semibold" style="color:var(--ink)">Leere Vorlagen</p>
+      <p class="text-sm mt-1" style="color:var(--ink-soft)">Zum Ausdrucken und handschriftlichen Ausfüllen.</p>
+      <div id="ws-blank-templates"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MEINE UNTERLAGEN ============ -->
+<section class="route-page" id="page-unterlagen" data-page="unterlagen">
+  <div class="max-w-3xl mx-auto px-5 py-14">
+    <nav data-ws-tabs="unterlagen" class="mb-8"></nav>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">Meine Unterlagen</h1>
+      <span id="ws-unterlagen-count" class="ws-badge"></span>
+    </div>
+    <p class="mt-3 leading-relaxed" style="color:var(--ink-soft)">Lege deine Bewerbungsunterlagen geordnet ab – nach Identität, Einkommen, Bonität und weiteren Unterlagen.</p>
+
+    <div id="ws-unterlagen-locked" class="mt-6"></div>
+    <div id="ws-unterlagen-main" class="hidden">
+      <label id="ws-up-drop" class="kc-drop flex flex-col items-center justify-center text-center px-6 py-10 mt-6">
+        <input type="file" id="ws-up-input" class="sr-only" multiple accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic">
+        <svg width="40" height="40" viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M13 7h13l7 7v21a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" stroke="var(--blue-deep)" stroke-width="1.8" stroke-linejoin="round"/><path d="M26 7v7h7" stroke="var(--blue-deep)" stroke-width="1.8" stroke-linejoin="round"/><path d="M22 30V19M17.5 23.5L22 19l4.5 4.5" stroke="var(--blue-deep)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="font-semibold mt-3" style="color:var(--ink)">Dateien hierher ziehen</span>
+        <span class="text-sm mt-1" style="color:var(--ink-soft)">oder <span class="underline" style="color:var(--blue-deep)">Datei auswählen</span></span>
+        <span class="text-xs mt-3" style="color:var(--ink-soft)">PDF, JPG oder PNG · bis 25 MB pro Datei</span>
+      </label>
+      <p id="ws-up-hint" class="hidden text-sm font-semibold mt-3" style="color:var(--blue-deep)"></p>
+      <p id="ws-up-error" class="kc-error hidden mt-3" role="alert"></p>
+      <div id="ws-pending" class="hidden mt-6"></div>
+      <div id="ws-folders" class="mt-4"></div>
+    </div>
+
+    <p class="text-xs mt-8 leading-relaxed" style="color:var(--ink-soft)">Deine Dateien werden nur in diesem Browser auf diesem Gerät gespeichert – nicht auf dem WohnStart-Server. Wenn du die Browserdaten löschst, sind sie weg; bewahre die Originale deshalb auch an einem anderen Ort auf. „Mit KI prüfen“ sendet ein PDF erst nach deinem Klick auf „Dokument prüfen“ einmalig zur Analyse.</p>
+  </div>
+</section>
+
+<!-- ============ WOHNSTART KOMPLETT (route id kept: #kurs) ============ -->
+<section class="route-page" id="page-kurs" data-page="kurs">
+  <div class="max-w-6xl mx-auto px-5 py-14">
+    <div class="max-w-2xl">
+      <h1 class="font-display text-3xl sm:text-4xl font-semibold" style="color:var(--ink)">WohnStart Komplett</h1>
+      <p class="mt-3 text-lg" style="color:var(--ink)">Einmal kaufen – alle wichtigen Funktionen für deine Wohnungsbewerbung nutzen.</p>
+      <p class="mt-2" style="color:var(--ink-soft)">Ein Paket statt vieler Stufen: Angaben einmal eingeben, Dokumente automatisch ausfüllen, Unterlagen prüfen und geordnet ablegen.</p>
+    </div>
+
+    <!-- PRICING CARD (one package, rendered by renderPricingCards) -->
+    <div id="pricing-cards" class="mt-10"></div>
+
+    <!-- WHAT'S INCLUDED -->
+    <div class="mt-16">
+      <h2 class="font-display text-2xl sm:text-3xl font-semibold" style="color:var(--ink)">Was ist in WohnStart Komplett enthalten?</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        <div class="surface rounded-2xl p-6">
+          <p class="font-semibold" style="color:var(--ink)"><span style="color:var(--green)">✓</span>&nbsp; Persönliche Angaben einmal eingeben</p>
+          <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Name, Adresse, Beruf, Einkommen und Haushalt erfasst du ein einziges Mal – WohnStart merkt sie sich in deinem Browser.</p>
+        </div>
+        <div class="surface rounded-2xl p-6">
+          <p class="font-semibold" style="color:var(--ink)"><span style="color:var(--green)">✓</span>&nbsp; Dokumente automatisch ausfüllen</p>
+          <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Mieterselbstauskunft, Bewerbungsanschreiben und Deckblatt werden automatisch mit deinen Angaben befüllt. Vorschau ansehen, PDF erstellen, fertig.</p>
+        </div>
+        <div class="surface rounded-2xl p-6">
+          <p class="font-semibold" style="color:var(--ink)"><span style="color:var(--green)">✓</span>&nbsp; Vorlagen nutzen</p>
+          <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Sachliche WohnStart-Vorlagen sowie eine leere Mieterselbstauskunft und eine ausführliche Bewerbungs-Checkliste zum Ausdrucken.</p>
+        </div>
+        <div class="surface rounded-2xl p-6">
+          <p class="font-semibold" style="color:var(--ink)"><span style="color:var(--green)">✓</span>&nbsp; KI-Dokumenten-Check</p>
+          <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">2 Prüfungen sind kostenlos, mit WohnStart Komplett kommen <span data-komplett-aichecks>50</span> weitere dazu: Lesbarkeit, fehlende Angaben und Seiten, Aktualität, Widersprüche.</p>
+        </div>
+        <div class="surface rounded-2xl p-6">
+          <p class="font-semibold" style="color:var(--ink)"><span style="color:var(--green)">✓</span>&nbsp; Bewerbungs-Checkliste</p>
+          <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Sieh auf einen Blick, welche Unterlagen vorhanden sind, welche du prüfen solltest und welche noch fehlen – mit Fortschritt deiner Bewerbungsmappe.</p>
+        </div>
+        <div class="surface rounded-2xl p-6">
+          <p class="font-semibold" style="color:var(--ink)"><span style="color:var(--green)">✓</span>&nbsp; Unterlagen organisieren</p>
+          <p class="text-sm mt-2 leading-relaxed" style="color:var(--ink-soft)">Identität, Einkommen, Bonität und weitere Unterlagen geordnet an einem Ort – hochladen, ansehen, umsortieren, entfernen.</p>
+        </div>
+      </div>
+      <p class="text-xs mt-4 leading-relaxed" style="color:var(--ink-soft)">Digitale Vorlagen und Vorbereitungshilfen – keine amtlichen Formulare und keine Rechtsberatung. Keine Garantie für eine Wohnungszusage, eine bestimmte SCHUFA-Bewertung oder eine Antwort von Vermietern.</p>
+      <p class="text-sm mt-4 rounded-xl px-4 py-3" style="background:var(--blue-tint); color:var(--ink)">Du hast früher STANDARD, PLUS oder PREMIUM gekauft? Dein Zugang gilt weiter und umfasst jetzt alle Funktionen von WohnStart Komplett.</p>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="mt-16">
+      <h2 class="font-display text-2xl sm:text-3xl font-semibold" style="color:var(--ink)">So funktioniert es</h2>
+      <div class="grid sm:grid-cols-3 gap-6 mt-6">
+        <div>
+          <p class="font-display text-3xl font-semibold" style="color:var(--blue-deep)">01</p>
+          <p class="font-semibold mt-2" style="color:var(--ink)">WohnStart Komplett freischalten</p>
+          <p class="text-sm mt-1" style="color:var(--ink-soft)">Einmal sicher über Stripe bezahlen – sofort nach der Bestätigung nutzen.</p>
+        </div>
+        <div>
+          <p class="font-display text-3xl font-semibold" style="color:var(--blue-deep)">02</p>
+          <p class="font-semibold mt-2" style="color:var(--ink)">Angaben einmal eingeben</p>
+          <p class="text-sm mt-1" style="color:var(--ink-soft)">WohnStart füllt deine Dokumente automatisch aus und zeigt dir, was noch fehlt.</p>
+        </div>
+        <div>
+          <p class="font-display text-3xl font-semibold" style="color:var(--blue-deep)">03</p>
+          <p class="font-semibold mt-2" style="color:var(--ink)">Prüfen und bewerben</p>
+          <p class="text-sm mt-1" style="color:var(--ink-soft)">Unterlagen mit der KI prüfen, Bewerbungsmappe vervollständigen und professionell bewerben.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- WAITLIST -->
+    <div class="surface rounded-2xl p-6 sm:p-8 mt-16">
+      <h2 class="font-semibold text-lg" style="color:var(--ink)">Für Updates eintragen</h2>
+      <p class="text-sm mt-1" style="color:var(--ink-soft)">Trag dich ein, um über neue Vorlagen und Funktionen informiert zu werden. Demo-Formular – aktuell ohne Anbindung an einen E-Mail-Dienst.</p>
+      <form id="waitlist-form" class="flex flex-col sm:flex-row gap-3 mt-4">
+        <input type="email" required placeholder="deine@email.de" id="waitlist-email" class="flex-1 rounded-lg px-3 py-2.5">
+        <button type="submit" class="btn-secondary px-5 py-2.5 rounded-lg font-semibold whitespace-nowrap">Eintragen</button>
+      </form>
+      <p id="waitlist-status" class="text-sm mt-2" style="color:var(--green)"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODAL (product detail + checkout) ============ -->
+<div id="modal-overlay" class="fixed inset-0 z-[100] hidden items-start sm:items-center justify-center p-0 sm:p-5 overflow-y-auto" style="background:rgba(14,26,43,.55)">
+  <div id="modal-panel" class="surface w-full sm:max-w-2xl sm:rounded-2xl p-6 sm:p-8 min-h-screen sm:min-h-0 relative" role="dialog" aria-modal="true">
+    <button id="modal-close" aria-label="Schließen" class="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center" style="border:1px solid var(--line)">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2l12 12M14 2L2 14" stroke="#0E1A2B" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+</main>
+
+<footer class="border-t mt-10" style="border-color:var(--line)">
+  <div class="max-w-6xl mx-auto px-5 py-10 flex flex-col sm:flex-row justify-between gap-4 text-sm" style="color:var(--ink-soft)">
+    <p>© 2026 WohnStart · Dein smarter Start in die Wohnungssuche.</p>
+    <p>Keine Rechts- oder Finanzberatung. Alle Angaben ohne Gewähr.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- ROUTING ---------------- */
+  var validRoutes = ["home","rechner","mietpreise","kurs","ki-check","mein-wohnstart","angaben","dokument-erstellen","unterlagen","neu-in-deutschland"];
+
+  /* Page title + meta description per route (default = the homepage values in <head>). */
+  var ROUTE_META = {
+    "neu-in-deutschland": {
+      title: "Neu in Deutschland & keine SCHUFA? | WohnStart",
+      description: "Neu in Deutschland und noch keine SCHUFA-Historie? Erfahre, was du bei der Wohnungssuche beachten kannst und welche Unterlagen deine Bewerbung stärken können."
+    }
+  };
+  var DEFAULT_META = { title: document.title, description: (document.querySelector('meta[name="description"]') || {}).content || "" };
+  function applyRouteMeta(route) {
+    var meta = ROUTE_META[route] || DEFAULT_META;
+    document.title = meta.title;
+    var tag = document.querySelector('meta[name="description"]');
+    if (tag) tag.setAttribute("content", meta.description);
+  }
+
+  function navigate() {
+    var hash = (location.hash || "#home").replace("#", "");
+
+    // In-page anchor support: some homepage sections (e.g. the embedded
+    // Rechner) are reachable via a hash that isn't a full "page" route.
+    // If the hash matches an element id on the page instead, just smooth
+    // -scroll to it rather than switching pages. This only ever runs for
+    // hashes that are NOT in validRoutes, so it has no effect on any
+    // existing route (including "#kurs") or on checkout/webhook behavior.
+    if (validRoutes.indexOf(hash) === -1) {
+      var anchorEl = document.getElementById(hash);
+      if (anchorEl) {
+        closeMobileNav();
+        closeMoreMenu();
+        anchorEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      hash = "home";
+    }
+
+    document.querySelectorAll(".route-page").forEach(function (el) {
+      el.classList.toggle("active", el.getAttribute("data-page") === hash);
+    });
+    document.querySelectorAll(".nav-link").forEach(function (el) {
+      el.classList.toggle("active", el.getAttribute("data-route") === hash);
+    });
+    var moreBtn = document.getElementById("more-menu-btn");
+    if (moreBtn) {
+      var moreRoutes = ["rechner", "mietpreise", "kurs", "ki-check", "angaben", "dokument-erstellen", "unterlagen"];
+      moreBtn.classList.toggle("active", moreRoutes.indexOf(hash) !== -1);
+    }
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    closeMobileNav();
+    closeMoreMenu();
+    applyRouteMeta(hash);
+    // WohnStart Komplett pages (public/js/komplett.js) refresh themselves on this.
+    try { document.dispatchEvent(new CustomEvent("wohnstart:route", { detail: hash })); } catch (e) { /* noop */ }
+  }
+  window.addEventListener("hashchange", navigate);
+  document.addEventListener("DOMContentLoaded", function () {
+    navigate();
+    initMietrechner();
+    initQmRechner();
+    initMietpreise();
+    initWaitlist();
+    initPakete();
+    initHomeRechner();
+    initMoreMenu();
+    initNeuInDeutschland();
+  });
+
+  /* ---------------- MOBILE NAV ---------------- */
+  window.toggleMobileNav = function () {
+    var nav = document.getElementById("mobile-nav");
+    var btn = document.getElementById("hamburger");
+    var isHidden = nav.classList.contains("hidden");
+    nav.classList.toggle("hidden");
+    btn.setAttribute("aria-expanded", isHidden ? "true" : "false");
+  };
+  window.closeMobileNav = function () {
+    document.getElementById("mobile-nav").classList.add("hidden");
+    document.getElementById("hamburger").setAttribute("aria-expanded", "false");
+  };
+
+  /* ---------------- "MEHR" DROPDOWN (desktop nav) ---------------- */
+  window.toggleMoreMenu = function () {
+    var dd = document.getElementById("more-menu-dropdown");
+    var btn = document.getElementById("more-menu-btn");
+    var arrow = document.getElementById("more-menu-arrow");
+    if (!dd || !btn) return;
+    var willOpen = !dd.classList.contains("open");
+    dd.classList.toggle("open", willOpen);
+    if (arrow) arrow.classList.toggle("open", willOpen);
+    btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  };
+  window.closeMoreMenu = function () {
+    var dd = document.getElementById("more-menu-dropdown");
+    var btn = document.getElementById("more-menu-btn");
+    var arrow = document.getElementById("more-menu-arrow");
+    if (dd) dd.classList.remove("open");
+    if (arrow) arrow.classList.remove("open");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  };
+  function initMoreMenu() {
+    document.addEventListener("click", function (e) {
+      var menu = document.getElementById("more-menu");
+      if (menu && !menu.contains(e.target)) closeMoreMenu();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      var dd = document.getElementById("more-menu-dropdown");
+      if (dd && dd.classList.contains("open")) closeMoreMenu();
+    });
+  }
+
+  /* ---------------- HOME RECHNER (embedded calculator on homepage) ----------------
+     Independent instance with its own ids — does not touch the full
+     Mietrechner/Quadratmeter-Rechner on the dedicated #rechner page. */
+  function initHomeRechner() {
+    var ids = ["hr-kalt", "hr-neben", "hr-heiz", "hr-strom"];
+    var out = document.getElementById("hr-monthly");
+    if (!out) return;
+    function calc() {
+      var total = ids.reduce(function (sum, id) {
+        var el = document.getElementById(id);
+        return sum + (el ? num(el) : 0);
+      }, 0);
+      out.textContent = eur(total);
+    }
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener("input", calc);
+    });
+    calc();
+  }
+
+  /* ---------------- "JETZT STARTEN" ----------------
+     Every "Jetzt starten" button leads straight to "Meine Angaben"
+     (#angaben, public/js/komplett.js). */
+  window.goToAngaben = function () {
+    closeMobileNav();
+    closeMoreMenu();
+    if (location.hash === "#angaben") navigate();
+    else location.hash = "#angaben";
+  };
+
+  /* ---------------- NEU IN DEUTSCHLAND – NOCH KEINE SCHUFA? ----------------
+     Smooth scroll for the hero CTA (without changing the route/hash) and a
+     subtle reveal animation. The FAQ uses native <details>, so it also works
+     without JavaScript. */
+  function initNeuInDeutschland() {
+    var page = document.getElementById("page-neu-in-deutschland");
+    if (!page) return;
+    page.querySelectorAll("[data-ndz-scroll]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var target = document.getElementById(btn.getAttribute("data-ndz-scroll"));
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || !("IntersectionObserver" in window)) return;
+    page.classList.add("ndz-anim");
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    page.querySelectorAll(".ndz-reveal").forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---------------- HELPERS ---------------- */
+  function eur(n) {
+    if (!isFinite(n)) n = 0;
+    return n.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+  }
+  function num(el) {
+    var v = parseFloat(el.value);
+    if (isNaN(v) || v < 0) v = 0;
+    return v;
+  }
+  function safeStorageGet(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function safeStorageSet(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage unavailable */ }
+  }
+  function safeStorageRemove(key) {
+    try { localStorage.removeItem(key); } catch (e) { /* noop */ }
+  }
+
+  /* ---------------- MIETRECHNER ---------------- */
+  function initMietrechner() {
+    var ids = ["mr-kalt","mr-neben","mr-heiz","mr-strom","mr-internet","mr-sonstige"];
+    function calc() {
+      var vals = ids.map(function (id) { return num(document.getElementById(id)); });
+      var monthly = vals.reduce(function (a, b) { return a + b; }, 0);
+      document.getElementById("mr-monthly").textContent = eur(monthly);
+      document.getElementById("mr-yearly").textContent = eur(monthly * 12);
+    }
+    ids.forEach(function (id) {
+      document.getElementById(id).addEventListener("input", calc);
+    });
+    calc();
+  }
+
+  /* ---------------- QUADRATMETER-RECHNER ---------------- */
+  function initQmRechner() {
+    function calc() {
+      var kalt = num(document.getElementById("qm-kalt"));
+      var flaeche = num(document.getElementById("qm-flaeche")) || 1;
+      var perM2 = kalt / flaeche;
+      document.getElementById("qm-result").textContent = perM2.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " € / m²";
+    }
+    function calcRev() {
+      var flaeche = num(document.getElementById("qm-rev-flaeche"));
+      var preis = num(document.getElementById("qm-rev-preis"));
+      document.getElementById("qm-rev-result").textContent = eur(flaeche * preis);
+    }
+    ["qm-kalt","qm-flaeche"].forEach(function (id) { document.getElementById(id).addEventListener("input", calc); });
+    ["qm-rev-flaeche","qm-rev-preis"].forEach(function (id) { document.getElementById(id).addEventListener("input", calcRev); });
+    calc(); calcRev();
+  }
+
+  /* ---------------- MIETPREISE (Beispieldaten) ---------------- */
+  var cityData = {
+    "Berlin":      { m2: 13.5, one: 750,  two: 1050, three: 1450 },
+    "Hamburg":     { m2: 14.2, one: 780,  two: 1100, three: 1520 },
+    "München":     { m2: 21.8, one: 1150, two: 1650, three: 2250 },
+    "Köln":        { m2: 13.1, one: 700,  two: 1000, three: 1380 },
+    "Düsseldorf":  { m2: 13.8, one: 720,  two: 1040, three: 1420 },
+    "Dortmund":    { m2: 9.2,  one: 520,  two: 720,  three: 980  },
+    "Essen":       { m2: 9.0,  one: 500,  two: 700,  three: 950  },
+    "Frankfurt":   { m2: 16.4, one: 900,  two: 1280, three: 1750 },
+    "Leipzig":     { m2: 9.6,  one: 540,  two: 760,  three: 1020 },
+    "Stuttgart":   { m2: 15.9, one: 870,  two: 1230, three: 1680 }
+  };
+  function initMietpreise() {
+    var select = document.getElementById("city-select");
+    Object.keys(cityData).forEach(function (city) {
+      var opt = document.createElement("option");
+      opt.value = city; opt.textContent = city;
+      select.appendChild(opt);
+    });
+    function render() {
+      var d = cityData[select.value];
+      var wrap = document.getElementById("city-results");
+      wrap.innerHTML = "";
+      var cards = [
+        { label: "€ / m²", value: d.m2.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" },
+        { label: "1-Zimmer-Wohnung", value: eur(d.one) },
+        { label: "2-Zimmer-Wohnung", value: eur(d.two) },
+        { label: "3-Zimmer-Wohnung", value: eur(d.three) }
+      ];
+      cards.forEach(function (c) {
+        var el = document.createElement("div");
+        el.className = "surface rounded-xl p-5";
+        el.innerHTML = '<p class="text-sm" style="color:var(--ink-soft)">' + c.label + '</p><p class="font-display text-xl font-semibold mt-1" style="color:var(--ink)">' + c.value + '</p><p class="text-xs mt-2" style="color:var(--ink-soft)">Beispieldaten</p>';
+        wrap.appendChild(el);
+      });
+    }
+    select.addEventListener("change", render);
+    select.value = "Berlin";
+    render();
+  }
+
+  /* The Mieterselbstauskunft page was removed. Delete any draft it saved in
+     the visitor's browser, so no personal data is left behind. */
+  try { localStorage.removeItem("wohnstart_sa_draft_v1"); } catch (e) { /* storage unavailable */ }
+  /* The Bewerbungs-Checkliste page was removed as well; delete its saved state. */
+  try { localStorage.removeItem("wohnstart_dc_state_v1"); } catch (e) { /* storage unavailable */ }
+
+  /* ---------------- WAITLIST (demo only) ---------------- */
+  function initWaitlist() {
+    var form = document.getElementById("waitlist-form");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      document.getElementById("waitlist-status").textContent = "Danke! (Demo – noch keine echte Anmeldung verbunden.)";
+      document.getElementById("waitlist-email").value = "";
+    });
+  }
+
+  /* ---------------- WOHNSTART KOMPLETT: pricing card, modal, checkout ----------------
+     This object is the ONE place package display info is defined on the
+     frontend. It mirrors server/config/packages.js, but is display-only:
+     the actual charge amount is always resolved server-side from the
+     Stripe Price ID — this object is never sent to the backend, only the
+     package `id` is. The shown price is replaced by the live Stripe price
+     from GET /api/packages as soon as it has loaded. */
+  var packages = [
+    {
+      id: "komplett",
+      name: "WohnStart Komplett",
+      shortName: "WohnStart Komplett",
+      price: "29,99",
+      badge: "Ein Paket – alles drin",
+      subtitle: "Einmal kaufen – alle wichtigen Funktionen für deine Wohnungsbewerbung nutzen.",
+      explain: "Gib deine Angaben einmal ein, lass Mieterselbstauskunft, Anschreiben und Deckblatt automatisch ausfüllen, prüfe deine Unterlagen mit der KI und behalte mit der Checkliste den Überblick.",
+      cta: "WohnStart Komplett kaufen",
+      highlight: true,
+      coreItems: [
+        "Persönliche Angaben einmal eingeben",
+        "Dokumente automatisch ausfüllen",
+        "Vorlagen nutzen",
+        "KI-Dokumenten-Check",
+        "Bewerbungs-Checkliste",
+        "Unterlagen organisieren"
+      ],
+      moreItems: []
+    }
+  ];
+
+  function renderPricingCards() {
+    var wrap = document.getElementById("pricing-cards");
+    wrap.innerHTML = "";
+    packages.forEach(function (pkg) {
+      var card = document.createElement("div");
+      card.className = "surface rounded-2xl p-6 sm:p-9 grid md:grid-cols-[1.2fr_0.8fr] gap-8 md:gap-10 items-center max-w-4xl";
+      card.style.borderColor = "var(--blue-deep)";
+      card.style.borderWidth = "2px";
+      card.style.boxShadow = "0 20px 40px -24px rgba(30,63,115,.4)";
+
+      var coreHtml = pkg.coreItems.map(function (item) {
+        return '<li class="flex gap-2 text-sm"><span style="color:var(--green)">✓</span><span style="color:var(--ink)">' + item + '</span></li>';
+      }).join("");
+
+      card.innerHTML =
+        '<div>' +
+          '<span class="tag mb-3 inline-flex" style="background:var(--blue-deep); color:#fff">' + pkg.badge + '</span>' +
+          '<h2 class="font-display text-2xl sm:text-3xl font-semibold" style="color:var(--ink)">' + pkg.shortName + '</h2>' +
+          '<p class="text-sm mt-2" style="color:var(--ink-soft)">' + pkg.subtitle + '</p>' +
+          '<ul class="grid sm:grid-cols-2 gap-2.5 mt-6">' + coreHtml + '</ul>' +
+        '</div>' +
+        '<div class="rounded-2xl p-6" style="background:var(--bg-alt)">' +
+          '<p class="font-display text-4xl font-semibold" style="color:var(--ink)">€ <span data-komplett-price>' + pkg.price + '</span><span class="text-base font-normal" style="color:var(--ink-soft)"> einmalig</span></p>' +
+          '<p class="text-sm mt-2" style="color:var(--ink-soft)">Kein Abo. Einmal bezahlen, dauerhaft nutzen.</p>' +
+          '<div class="mt-6 flex flex-col gap-2">' +
+            '<button class="btn-primary px-5 py-3.5 rounded-lg font-semibold" data-checkout="' + pkg.id + '">' + pkg.cta + '</button>' +
+            '<p class="text-xs flex items-center justify-center gap-1.5 mt-1" style="color:var(--ink-soft)">' +
+              '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="2" y="5.2" width="8" height="5.3" rx="1" stroke="currentColor" stroke-width="1"/><path d="M3.5 5.2V3.6a2.5 2.5 0 0 1 5 0v1.6" stroke="currentColor" stroke-width="1"/></svg>' +
+              'Sichere Zahlung über Stripe' +
+            '</p>' +
+            '<button class="text-sm font-semibold mt-1" style="color:var(--ink-soft)" data-details="' + pkg.id + '">Details ansehen</button>' +
+          '</div>' +
+        '</div>';
+
+      wrap.appendChild(card);
+    });
+
+    wrap.querySelectorAll("[data-details]").forEach(function (btn) {
+      btn.addEventListener("click", function () { openDetailModal(btn.getAttribute("data-details")); });
+    });
+    bindCheckoutButtons(wrap);
+  }
+
+  // Binds every not-yet-bound [data-checkout] button inside root (pricing card, homepage offer).
+  function bindCheckoutButtons(root) {
+    root.querySelectorAll("[data-checkout]").forEach(function (btn) {
+      if (btn.getAttribute("data-bound")) return;
+      btn.setAttribute("data-bound", "1");
+      btn.addEventListener("click", function () { startCheckout(btn.getAttribute("data-checkout")); });
+    });
+  }
+
+  // Live price straight from the Stripe Price object (server-side lookup).
+  function loadLivePrice() {
+    fetch("/api/packages", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.packages) return;
+        data.packages.forEach(function (live) {
+          var pkg = findPkg(live.id);
+          if (!pkg) return;
+          pkg.price = live.price;
+          if (live.id === "komplett") {
+            document.querySelectorAll("[data-komplett-price]").forEach(function (el) { el.textContent = live.price; });
+            if (live.aiChecks) document.querySelectorAll("[data-komplett-aichecks]").forEach(function (el) { el.textContent = live.aiChecks; });
+          }
+        });
+      })
+      .catch(function () { /* keep the fallback price */ });
+  }
+
+  function findPkg(id) { return packages.filter(function (p) { return p.id === id; })[0]; }
+
+  function openModal(html) {
+    document.getElementById("modal-content").innerHTML = html;
+    var overlay = document.getElementById("modal-overlay");
+    overlay.classList.remove("hidden");
+    overlay.classList.add("flex");
+    document.body.style.overflow = "hidden";
+  }
+  function closeModal() {
+    var overlay = document.getElementById("modal-overlay");
+    overlay.classList.add("hidden");
+    overlay.classList.remove("flex");
+    document.body.style.overflow = "";
+  }
+
+  function openDetailModal(id) {
+    var pkg = findPkg(id);
+    var allItems = pkg.coreItems.concat(pkg.moreItems);
+    var itemsHtml = allItems.map(function (item) {
+      return '<li class="flex gap-2 text-sm"><span style="color:var(--green)">✓</span><span style="color:var(--ink)">' + item + '</span></li>';
+    }).join("");
+
+    openModal(
+      '<p class="text-sm font-semibold" style="color:var(--blue-deep)">' + pkg.shortName + '</p>' +
+      '<h2 class="font-display text-2xl font-semibold mt-1" style="color:var(--ink)">' + pkg.name + '</h2>' +
+      '<p class="font-display text-3xl font-semibold mt-3" style="color:var(--ink)">€ ' + pkg.price + '<span class="text-sm font-normal" style="color:var(--ink-soft)"> einmalig</span></p>' +
+      '<p class="text-sm mt-3" style="color:var(--ink-soft)">' + pkg.explain + '</p>' +
+
+      '<div class="rounded-xl p-4 mt-5 grid grid-cols-3 gap-3" style="background:var(--bg-alt)">' +
+        '<div class="surface rounded-lg h-20 flex items-center justify-center text-xs text-center px-2" style="color:var(--ink-soft)">Beispiel<br>Mieterselbstauskunft</div>' +
+        '<div class="surface rounded-lg h-20 flex items-center justify-center text-xs text-center px-2" style="color:var(--ink-soft)">Beispiel<br>Anschreiben</div>' +
+        '<div class="surface rounded-lg h-20 flex items-center justify-center text-xs text-center px-2" style="color:var(--ink-soft)">Beispiel<br>Deckblatt</div>' +
+      '</div>' +
+      '<p class="text-xs mt-2" style="color:var(--ink-soft)">Beispielhafte Vorschau – alle Dokumente sind WohnStart-Vorlagen, keine amtlichen Formulare.</p>' +
+
+      '<h3 class="font-semibold mt-6" style="color:var(--ink)">Was du bekommst</h3>' +
+      '<ul class="flex flex-col gap-2 mt-3">' + itemsHtml + '</ul>' +
+
+      '<h3 class="font-semibold mt-6" style="color:var(--ink)">So funktioniert es</h3>' +
+      '<ol class="text-sm mt-2 flex flex-col gap-1.5" style="color:var(--ink-soft)">' +
+        '<li>01 · WohnStart Komplett freischalten</li>' +
+        '<li>02 · Angaben einmal eingeben, Dokumente automatisch ausfüllen</li>' +
+        '<li>03 · Unterlagen prüfen und bewerben</li>' +
+      '</ol>' +
+
+      '<button class="btn-primary w-full mt-7 px-5 py-3 rounded-lg font-semibold" data-checkout="' + pkg.id + '">' + pkg.cta + '</button>' +
+      '<p class="text-xs mt-3" style="color:var(--ink-soft)">Digitale Vorbereitungshilfe. Keine Garantie für eine Wohnungszusage oder eine bestimmte SCHUFA-Bewertung.</p>'
+    );
+
+    document.querySelector('#modal-content [data-checkout]').addEventListener("click", function () {
+      startCheckout(pkg.id);
+    });
+  }
+
+  function startCheckout(id) {
+    var pkg = findPkg(id);
+    if (!pkg) return;
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-checkout="' + id + '"]'));
+    var labels = buttons.map(function (b) { return b.textContent; });
+    function restore() { buttons.forEach(function (b, i) { b.disabled = false; b.textContent = labels[i]; }); }
+    buttons.forEach(function (b) { b.disabled = true; b.textContent = "Wird weitergeleitet…"; });
+
+    fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ packageId: id })
+    })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        if (result.ok && result.data && result.data.url) {
+          // Real Stripe-hosted Checkout page. No success is assumed here —
+          // access is only ever granted once Stripe's webhook confirms
+          // payment (see server/routes/webhook.js).
+          window.location.href = result.data.url;
+        } else {
+          restore();
+          showCheckoutError(result.data && result.data.error);
+        }
+      })
+      .catch(function () {
+        restore();
+        showCheckoutError();
+      });
+  }
+
+  function showCheckoutError(message) {
+    openModal(
+      '<h2 class="font-display text-2xl font-semibold" style="color:var(--ink)">Zahlung konnte nicht gestartet werden</h2>' +
+      '<p class="text-sm mt-3" style="color:var(--ink-soft)">' + (message || "Es gab ein Problem beim Starten des Bezahlvorgangs. Bitte versuche es erneut.") + '</p>' +
+      '<button class="btn-secondary w-full mt-6 px-5 py-3 rounded-lg font-semibold" id="modal-close-error">Schließen</button>'
+    );
+    document.getElementById("modal-close-error").addEventListener("click", closeModal);
+  }
+
+  function initPakete() {
+    renderPricingCards();
+    bindCheckoutButtons(document.getElementById("home-komplett"));
+    loadLivePrice();
+    document.getElementById("modal-close").addEventListener("click", closeModal);
+    document.getElementById("modal-overlay").addEventListener("click", function (e) {
+      if (e.target.id === "modal-overlay") closeModal();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeModal();
+    });
+    window.addEventListener("pageshow", function (e) {
+      if (!e.persisted) return;
+      document.querySelectorAll("[data-checkout]").forEach(function (b) {
+        if (b.disabled) { b.disabled = false; b.textContent = b.closest("#modal-content") ? findPkg(b.getAttribute("data-checkout")).cta : "WohnStart Komplett kaufen"; }
+      });
+    });
+  }
+
+})();
+</script>
+<script src="/js/ki-check.js" defer></script>
+<script src="/js/komplett.js" defer></script>
+</body>
+</html>
